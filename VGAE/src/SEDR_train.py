@@ -4,9 +4,14 @@ import numpy as np
 import torch
 import torch.nn.modules.loss
 import torch.nn.functional as F
-from VGAE.progress.bar import Bar
 from sklearn.cluster import KMeans
-from VGAE.src.SEDR_model import SEDR
+
+try:
+    from VGAE.progress.bar import Bar
+    from VGAE.src.SEDR_model import SEDR 
+except ModuleNotFoundError as e:
+    from progress.bar import Bar
+    from src.SEDR_model import SEDR
 
 
 def target_distribution(batch):

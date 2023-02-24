@@ -38,3 +38,4 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 print('===== Using device: ' + device)
+
