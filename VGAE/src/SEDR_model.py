@@ -59,7 +59,7 @@ class SEDR(nn.Module):
     def __init__(self, input_dim, params):
         super(SEDR, self).__init__()
         self.alpha = 1.0
-        self.latent_dim = params.gcn_hidden2+params.feat_hidden2
+        self.latent_dim = params.gcn_hidden2 + params.feat_hidden2
 
         # feature autoencoder
         self.encoder = nn.Sequential()
