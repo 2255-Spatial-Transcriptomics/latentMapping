@@ -1,0 +1,2 @@
+model_checkpoint_path: "/Users/poyuchen/Desktop/UBC/Engineering-Physics/Fifth-Year/Term 2/ENPH 479/repo.nosync/latentMapping/VAE/example/demo-out/lung_human_ASK440_model_5epoch"
+all_model_checkpoint_paths: "/Users/poyuchen/Desktop/UBC/Engineering-Physics/Fifth-Year/Term 2/ENPH 479/repo.nosync/latentMapping/VAE/example/demo-out/lung_human_ASK440_model_5epoch"

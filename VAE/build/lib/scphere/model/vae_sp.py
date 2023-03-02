@@ -57,15 +57,15 @@ class SCPHERE(object):
                                                      name='batch')
             self.batch = tf.one_hot(self.batch_id, self.n_batch[0])
 
-        self.library_size = tf.reduce_sum(self.x, axis=1, keepdims=True,
+        self.library_size = tf.reduce_sum(input_tensor=self.x, axis=1, keepdims=True,
                                           name='library-size')
 
         self.z_mu, self.z_sigma_square = self._encoder(self.x, self.batch)
         self.make_encoder = tf.compat.v1.make_template('encoder', self._encoder)
 
-        with tf.name_scope('latent-variable'):
+        with tf.compat.v1.name_scope('latent-variable'):
             if self.latent_dist == 'normal':
-                self.q_z = tf.distributions.Normal(self.z_mu, self.z_sigma_square)
+                self.q_z = tf.compat.v1.distributions.Normal(self.z_mu, self.z_sigma_square)
             elif self.latent_dist == 'vmf':
                 self.q_z = VonMisesFisher(self.z_mu, self.z_sigma_square)
             elif self.latent_dist == 'wn':
@@ -77,30 +77,30 @@ class SCPHERE(object):
         self.mu, self.sigma_square = self._decoder(self.z, self.batch)
         self.depth_loss = self._depth_regularizer(self.batch)
 
-        with tf.name_scope('ELBO'):
+        with tf.compat.v1.name_scope('ELBO'):
             if self.observation_dist == 'student':
                 self.log_likelihood = tf.reduce_mean(
-                    log_likelihood_student(self.x,
+                    input_tensor=log_likelihood_student(self.x,
                                            self.mu,
                                            self.sigma_square,
                                            df=5.0), name="log_likelihood")
             elif self.observation_dist == 'nb':
                 self.log_likelihood = tf.reduce_mean(
-                    log_likelihood_nb(self.x,
+                    input_tensor=log_likelihood_nb(self.x,
                                       self.mu,
                                       self.sigma_square,
                                       eps=1e-10), name="log_likelihood")
 
             if self.latent_dist == 'normal':
-                self.p_z = tf.distributions.Normal(tf.zeros_like(self.z),
+                self.p_z = tf.compat.v1.distributions.Normal(tf.zeros_like(self.z),
                                                    tf.ones_like(self.z))
                 kl = self.q_z.kl_divergence(self.p_z)
-                self.kl = tf.reduce_mean(tf.reduce_sum(kl, axis=1))
+                self.kl = tf.reduce_mean(input_tensor=tf.reduce_sum(input_tensor=kl, axis=1))
             elif self.latent_dist == 'vmf':
                 self.p_z = HypersphericalUniform(self.z_dim - 1,
                                                  dtype=self.x.dtype)
                 kl = self.q_z.kl_divergence(self.p_z)
-                self.kl = tf.reduce_mean(kl)
+                self.kl = tf.reduce_mean(input_tensor=kl)
             elif self.latent_dist == 'wn':
                 tmp = self._polar_project(tf.zeros_like(self.z_sigma_square))
                 self.p_z = HyperbolicWrappedNorm(tmp,
@@ -108,7 +108,7 @@ class SCPHERE(object):
 
                 kl = self.q_z.log_prob(self.z) - self.p_z.log_prob(self.z)
 
-                self.kl = tf.reduce_mean(kl)
+                self.kl = tf.reduce_mean(input_tensor=kl)
             else:
                 raise NotImplemented
 
@@ -127,11 +127,11 @@ class SCPHERE(object):
         M2 = self.sp.shape[0]
 
         p1 = tf.matmul(
-            tf.expand_dims(tf.reduce_sum(tf.square(self.z_mu), 1), 1),
+            tf.expand_dims(tf.reduce_sum(input_tensor=tf.square(self.z_mu), axis=1), 1),
             tf.ones(shape=(1, M2))
         )
-        p2 = tf.transpose(tf.matmul(
-            tf.reshape(tf.reduce_sum(tf.square(self.sp), 1), shape=[-1, 1]),
+        p2 = tf.transpose(a=tf.matmul(
+            tf.reshape(tf.reduce_sum(input_tensor=tf.square(self.sp), axis=1), shape=[-1, 1]),
             tf.ones(shape=(M1, 1)),
             transpose_b=True
         ))
@@ -142,8 +142,8 @@ class SCPHERE(object):
         self.sp_mask = sp_mask
 
         self.sp_mask_marginal = tf.Variable(self.sp_mask, trainable=False, dtype='float32')
-        B = tf.expand_dims(tf.transpose(self.sp_mask_marginal), 0)
-        self.cell_sp_mask_marginal = tf.transpose(B, perm=[0, 2, 1])
+        B = tf.expand_dims(tf.transpose(a=self.sp_mask_marginal), 0)
+        self.cell_sp_mask_marginal = tf.transpose(a=B, perm=[0, 2, 1])
 
         # weighting the distances by gene expression
         AA = tf.broadcast_to(tf.expand_dims(self.grid_dist, 2),
@@ -159,9 +159,9 @@ class SCPHERE(object):
         ##
         self.cell_sp_mask_marginal = self.cell_sp_mask_marginal + self.sp_mask_neg
 
-        tmp = tf.nn.relu(tf.reduce_min(self.cell_sp_mask_marginal, 1) - 0.15)
+        tmp = tf.nn.relu(tf.reduce_min(input_tensor=self.cell_sp_mask_marginal, axis=1) - 0.15)
         tmp *= self.sp_gene
-        self.dist_loss = tf.reduce_mean(tf.reduce_sum(tmp, 1))
+        self.dist_loss = tf.reduce_mean(input_tensor=tf.reduce_sum(input_tensor=tmp, axis=1))
 
         # =====
         # Normlize by elements
@@ -173,22 +173,22 @@ class SCPHERE(object):
         self.sp_mask_weight = tf.Variable(self.sp_mask_weight * aa, trainable=False, dtype='float32')
 
         A = tf.expand_dims(self.sp_gene, 2)
-        B = tf.expand_dims(tf.transpose(self.sp_mask_weight), 0)
+        B = tf.expand_dims(tf.transpose(a=self.sp_mask_weight), 0)
         C = A * B
-        self.cell_sp_mask = tf.transpose(C, perm=[0, 2, 1])
+        self.cell_sp_mask = tf.transpose(a=C, perm=[0, 2, 1])
 
         AA = tf.broadcast_to(tf.expand_dims(tf.nn.relu(self.grid_dist - 0.15), 2),
                              shape=[128, 64, 11])
         self.cell_dist_mask = AA * self.cell_sp_mask
 
-        self.dist_loss += tf.reduce_sum(tf.reduce_sum(tf.reduce_sum(self.cell_dist_mask, 1), 1))
+        self.dist_loss += tf.reduce_sum(input_tensor=tf.reduce_sum(input_tensor=tf.reduce_sum(input_tensor=self.cell_dist_mask, axis=1), axis=1))
 
         ##
         self.session = tf.compat.v1.Session()
         self.saver = tf.compat.v1.train.Saver()
 
     def _encoder(self, x, batch):
-        regularizer = tf.contrib.layers.l2_regularizer(scale=0.01)
+        regularizer = tf.keras.regularizers.l2(l=0.5 * (0.01))
 
         if self.observation_dist == 'nb':
             x = tf.math.log1p(x)
@@ -200,7 +200,7 @@ class SCPHERE(object):
         if not self.batch_invariant:
             x = tf.concat([x, batch], 1)
 
-        with tf.name_scope('encoder-net'):
+        with tf.compat.v1.name_scope('encoder-net'):
             h = tf.keras.layers.Dense(units=self.encoder_layer[0],
                                       activation=self.activation,
                                       kernel_regularizer=regularizer)(x)
@@ -237,10 +237,10 @@ class SCPHERE(object):
         return z_mu, z_sigma_square
 
     def _decoder(self, z, batch):
-        regularizer = tf.contrib.layers.l2_regularizer(scale=0.01)
+        regularizer = tf.keras.regularizers.l2(l=0.5 * (0.01))
 
         z = tf.concat([z, batch], 1)
-        with tf.name_scope('decoder-net'):
+        with tf.compat.v1.name_scope('decoder-net'):
             h = tf.keras.layers.Dense(units=self.decoder_layer[0],
                                       activation=self.activation,
                                       kernel_regularizer=regularizer)(z)
@@ -258,7 +258,7 @@ class SCPHERE(object):
 
                 sigma_square = tf.keras.layers.Dense(units=self.x.shape[-1],
                                                      activation=tf.nn.softplus)(h)
-                sigma_square = tf.reduce_mean(sigma_square, 0)
+                sigma_square = tf.reduce_mean(input_tensor=sigma_square, axis=0)
             else:
                 mu = tf.keras.layers.Dense(units=self.x.shape[-1],
                                            activation=None)(h)
@@ -284,7 +284,7 @@ class SCPHERE(object):
         return one_hot_tensor
 
     def _polar_project(self, x):
-        x_norm = tf.math.reduce_sum(tf.math.square(x), axis=1, keepdims=True)
+        x_norm = tf.math.reduce_sum(input_tensor=tf.math.square(x), axis=1, keepdims=True)
         x_norm = tf.math.sqrt(self._clip_min_value(x_norm))
 
         x_unit = x / tf.reshape(x_norm, (-1, 1))
@@ -295,15 +295,15 @@ class SCPHERE(object):
         return z
 
     def _depth_regularizer(self, batch):
-        with tf.name_scope('depth-regularizer'):
+        with tf.compat.v1.name_scope('depth-regularizer'):
             samples = tf.random.poisson(lam=self.x * 0.0, shape=[1])
-            samples = tf.reshape(samples, tf.shape(self.x))
+            samples = tf.reshape(samples, tf.shape(input=self.x))
 
         z_mu1, z_sigma_square1 = self.make_encoder(
             tf.nn.relu(self.x - samples), batch)
 
-        mean_diff = tf.reduce_sum(tf.pow(self.z_mu - z_mu1, 2), axis=1)
-        loss = tf.reduce_mean(mean_diff)
+        mean_diff = tf.reduce_sum(input_tensor=tf.pow(self.z_mu - z_mu1, 2), axis=1)
+        loss = tf.reduce_mean(input_tensor=mean_diff)
 
         return loss
 
@@ -358,15 +358,15 @@ class OptimizerVAE(object):
         if depth_loss & (model.observation_dist == 'nb'):
             self.loss += model.depth_loss
 
-        with tf.name_scope('optimizer'):
+        with tf.compat.v1.name_scope('optimizer'):
             optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate,
                                                          beta1=0.9,
                                                          beta2=0.999,
                                                          epsilon=0.01)
 
-        with tf.name_scope('gradient-clip'):
+        with tf.compat.v1.name_scope('gradient-clip'):
             trainable_variable = tf.compat.v1.trainable_variables()
-            grad = tf.gradients(self.loss, trainable_variable)
+            grad = tf.gradients(ys=self.loss, xs=trainable_variable)
             grad_and_var = zip(grad, trainable_variable)
 
             grad_and_var = [(grad, var) for grad, var in grad_and_var
@@ -382,7 +382,7 @@ class OptimizerVAE(object):
 
         gradient_1d = [tf.reshape(grad, [-1]) for grad, var in
                        grad_clipped_and_var if grad is not None]
-        self.max_grad = tf.reduce_max(tf.concat(axis=0, values=gradient_1d))
+        self.max_grad = tf.reduce_max(input_tensor=tf.concat(axis=0, values=gradient_1d))
 
         self.train_step = optimizer.apply_gradients(grad_clipped_and_var,
                                                     name='minimize_cost')

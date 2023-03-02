@@ -18,12 +18,12 @@ def log_likelihood_student(x, mu, sigma_square, df=2.0):
     dist = tf.contrib.distributions.StudentT(df=df,
                                              loc=mu,
                                              scale=sigma)
-    return tf.reduce_sum(dist.log_prob(x), reduction_indices=1)
+    return tf.reduce_sum(input_tensor=dist.log_prob(x), axis=1)
 
 
 def log_likelihood_vmf(x, mu, sigma_square):
     dist = VonMisesFisher(loc=mu, scale=sigma_square)
-    return tf.reduce_sum(dist.log_prob(x), reduction_indices=1)
+    return tf.reduce_sum(input_tensor=dist.log_prob(x), axis=1)
 
 
 def log_likelihood_nb(x, mu, sigma, eps=1e-16):
@@ -34,7 +34,7 @@ def log_likelihood_nb(x, mu, sigma, eps=1e-16):
         tf.math.lgamma(x + 1) + sigma * tf.math.log(sigma + eps) - \
         sigma * log_mu_sigma + x * tf.math.log(mu + eps) - x * log_mu_sigma
 
-    return tf.reduce_sum(ll, axis=-1)
+    return tf.reduce_sum(input_tensor=ll, axis=-1)
 
 
 def transform_mtx(x, transform_type='log'):

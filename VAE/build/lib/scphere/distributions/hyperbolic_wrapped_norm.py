@@ -73,7 +73,7 @@ class HyperbolicWrappedNorm(distributions.Distribution):
 
         self._base_dist = tfp.distributions.Normal(loc=tf.zeros_like(self._scale),
                                                    scale=self._scale)
-        self._dim = tf.shape(self._loc)[1] - 1
+        self._dim = tf.shape(input=self._loc)[1] - 1
 
     @staticmethod
     def _param_shapes(sample_shape):
@@ -152,7 +152,7 @@ class HyperbolicWrappedNorm(distributions.Distribution):
         y0, y1 = tf.split(y, [1, y.shape.as_list()[-1] - 1], axis=-1)
         y_neg_first = tf.concat([-y0, y1], axis=-1)
 
-        return tf.reduce_sum(tf.multiply(x, y_neg_first), -1, keepdims=True)
+        return tf.reduce_sum(input_tensor=tf.multiply(x, y_neg_first), axis=-1, keepdims=True)
 
     def _parallel_transport(self, x, m1, m2):
         alpha = -self._lorentzian_product(m1, m2)
@@ -192,7 +192,7 @@ class HyperbolicWrappedNorm(distributions.Distribution):
         loc0 = self._lorentzian_orig(shape1, shape)
         v1 = self._parallel_transport(v, self._loc, loc0)
         xx = v1[..., 1:]
-        log_base_prob = tf.reduce_sum(self._base_dist.log_prob(xx), -1)
+        log_base_prob = tf.reduce_sum(input_tensor=self._base_dist.log_prob(xx), axis=-1)
         log_base_prob = array_ops.reshape(log_base_prob, shape1)
 
         return log_base_prob - res
