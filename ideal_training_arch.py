@@ -34,7 +34,10 @@ vae1 = getVAE(vae1_params) # VAE such as scphere or scvi
 vae2Params = {}
 vae2 = getVAE(vae2_params) # VAE in SEDR architecture
 
-vaeBatchLoader = getVAEBatchesLoader(xprime, xbar, z)
+vaeBatchLoader = getVAEBatchLoader(xprime, xbar, z)
+'''
+each batch contains N cells, with cell-gene expression of genes in x', xbar, 
+'''
 
 descriminatorParams = {}
 descriminator = getDescriminator(descriminatorParams)
@@ -57,6 +60,7 @@ for epoch in range(NUM_EPOCHS):
         
         predictions = descriminator(combined_z)
         accuracy = descriminatorLoss(predictions, zlabels)
+        ''' cross entropy loss for descriminator'''
         if accuracy > DESCR_ACC:
             break
         descriminatorLoss.backward()
@@ -70,6 +74,10 @@ for epoch in range(NUM_EPOCHS):
     
     # next iterate through the dataset in batches
     for xprime_batch, xbar_batch, z_batch in vaeBatchLoader:
+        '''
+        we can also pass x through the network each iteration to get z instead of pre-computing
+        if there are not enought batches of the spatial data, just circulate and re-use some batches
+        '''
         
         VAEOptimizer.zero_grad()
         
@@ -97,13 +105,13 @@ for epoch in range(NUM_EPOCHS):
         VAEOptimizer.step()
         
     
-# fix the weights on vae
+# fix the weights on the vae for SEDR
 vae2.predict()
 
-# step 3, train VGAE on spatial data
+# step 3, train VGAE on spatial data, this is the VAGE branch from SEDR 
 vgae_params = {}
 vgae = getVGAE(vgae_params) # build the vgae
-vgaeBatchLoader = getVGAEBatchLoader(xbar, x_st)
+vgaeBatchLoader = getVGAEBatchLoader(xbar, spot_xy_locations)
 
 for epoch in (VGAE_TRAIN_EPOCHS):
     print('starting epcoh', epoch, 'of VGAE training')
@@ -112,14 +120,18 @@ for epoch in (VGAE_TRAIN_EPOCHS):
         VGAEOptimizer.zero_grad()
         x_st_batch = vgae.construct_graph(spot_xy_locations)
 
-        z_st_batch = vgae(x_st_batch)
+        z_st_batch = vgae.encode(x_st_batch)
+        x_st_batch_reconstructed = vgae.decode(z_st_batch)
+        
+        
+        
+        loss1 = VGAELoss(x_st_batch, x_st_batch_reconstructed)
+        
+        # the gradients on vae2 are fixed, we only perform inference on xbar
         zbar_batch = vae2.encode(xbar_batch)
+        loss2 = CrossEntropy(zbar_batch, z_st_batch) # make the spatial embeddings as similar as possible to the cell-gene embeddings
 
-        z_combined_batch = torch.concat(zbar_batch, z_st_batch)
-        
-        xbar_batch_reconstructed, x_st_batch_reconstructed = vgae(z_combined_batch)
-        
-        loss = VGAELoss(xbar_batch, x_st_batch_reconstructed, x_st_batch, x_st_batch_reconstructed)
+        loss = w1*loss1 + w2*loss2
         
         loss.backward() 
         VGAEOptimizer.step()
@@ -128,6 +140,9 @@ for epoch in (VGAE_TRAIN_EPOCHS):
 
 # prediction step
 new_cell_gene_matrix = load_sc_dataset('prediction_dataset')
+embeddings = vae2.encode(new_cell_gene_matrix)
+spatial_info = vgae.decode(embeddings)
+
 
 
 
