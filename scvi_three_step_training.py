@@ -1,41 +1,198 @@
-import scanpy as sc
 import scvi
-from rich import print
-from scib_metrics.benchmark import Benchmarker
-from scvi.model.utils import mde
-from scvi_colab import install
+import torch
+import numpy as np
 
-adata = sc.read(
-    "data/lung_atlas.h5ad",
-    backup_url="https://figshare.com/ndownloader/files/24539942",
-)
+from models.scviModels.baseVAE import baseVAE
+from data_loaders.anndata_loader import loadSCDataset, loadSTDataset
+from data_loaders.tools import sampleHighestExpressions, findCommonGenes, extractGenes
 
-adata.raw = adata  # keep full dimension safe
-sc.pp.highly_variable_genes(
-    adata,
-    flavor="seurat_v3",
-    n_top_genes=100,
-    layer="counts",
-    batch_key="batch",
-    subset=True,
-)
+sc_adata = loadSCDataset()
+st_adata = loadSTDataset() 
 
-scvi.model.SCVI.setup_anndata(adata, layer="counts", batch_key="batch")
-vae = scvi.model.SCVI(adata, n_layers=2, n_latent=30, gene_likelihood="nb")
-vae.train(max_epochs=10)
+x_adata = sampleHighestExpressions(st_adata)
+common_genes = findCommonGenes(st_adata, sc_adata)
 
-adata.obsm["X_scVI"] = vae.get_latent_representation()
-sc.pp.neighbors(adata, use_rep="X_scVI")
-sc.tl.leiden(adata)
+xprime_adata = extractGenes(sc_adata, common_genes)
+xbar_adata = extractGenes(st_adata, common_genes)
 
-adata.obsm["X_mde"] = mde(adata.obsm["X_scVI"])
+# step 1
+baseVAE.setup_anndata(x_adata)
+baseVAE = baseVAE(x_adata)
+baseVAE.train(max_epochs=20)
 
-sc.pl.embedding(
-    adata,
-    basis="X_mde",
-    color=["batch", "leiden"],
-    frameon=False,
-    ncols=1,
-)
+z = baseVAE.get_latent_representation(x_adata)
 
-sc.pl.embedding(adata, basis="X_mde", color=["cell_type"], frameon=False, ncols=1)
+# baseVAE.module.forward(torch.tensor([1]))
+# step 2
+
+# print(baseVAE._model_summary_string)
+
+
+# do the actual data processing in a nother script, the load functions just reads in the post-processed csv files
+
+
+# david
+
+# x = sample_highest_expression(full_cell_gene_matrix_sc, 2000) # get 2000 most expressed genes
+# # Sayem
+
+# # find the common genes between the two datasets
+# common_genes = findCommonGenes(full_cell_gene_matrix_sc, spot_gene_matrix_st)
+# # sayem
+
+# # extract only expression data from sc dataset that share the common genes
+# xprime = extractGenes(full_cell_gene_matrix_sc, common_genes)
+# # sayem
+
+# # extract only expreesion data from st dataset that share the common genes
+# xbar = extractGenes(spot_gene_matrix_st, common_genes)
+# # sayem
+
+# # step one
+# baseVAEParams = {}
+# # import a scvi model and train end-to-end
+# # david + sayem
+# baseVAEModel = getVAE(baseVAEParams)
+
+# baseVAEModel.train(x)
+
+# z = baseVAEModel.encode(x)
+
+# # step 2
+# vae1_params = {}
+# vae1 = getVAE(vae1_params) # VAE such as scphere or scvi
+
+# vae2Params = {}
+# vae2 = getVAE(vae2_params) # VAE in SEDR architecture
+
+# vaeBatchLoader = getVAEBatchLoader(xprime, xbar, z)
+# '''
+# each batch contains N cells, with cell-gene expression of genes in x', xbar, 
+# '''
+
+# descriminatorParams = {}
+# descriminator = getDescriminator(descriminatorParams)
+
+# for epoch in range(NUM_EPOCHS):
+    
+#     # first train the descriminator
+    
+#     # combine the dataset for descrimination with z's, labels
+#     # labels can be 0 if from sc dataset, and 1 if from st dataset
+#     zprime = vae1(xprime)
+#     zbar = vae2(xbar)
+#     # then shuffle the dataset
+#     combined_z, zlabels = combineLatentSpaceWithLabels(zprime, zbar)
+    
+#     it = 0 
+#     while it < MAX_DESCR_ITERS:
+        
+#         descriminatorOptimizer.zero_grad()
+        
+#         predictions = descriminator(combined_z)
+#         accuracy = descriminatorLoss(predictions, zlabels)
+#         ''' cross entropy loss for descriminator'''
+#         if accuracy > DESCR_ACC:
+#             break
+#         descriminatorLoss.backward()
+#         descriminatorOptimizer.step()
+        
+#     # make sure this is a good enough number
+#     print('descriminator accuracy', accuracy)
+    
+#     # freeze weights on descriminator and prepare for prediction
+#     descriminator.predict()
+    
+#     # next iterate through the dataset in batches
+#     for xprime_batch, xbar_batch, z_batch in vaeBatchLoader:
+#         '''
+#         we can also pass x through the network each iteration to get z instead of pre-computing
+#         if there are not enought batches of the spatial data, just circulate and re-use some batches
+#         '''
+        
+#         VAEOptimizer.zero_grad()
+        
+#         zprime_batch = vae1.encode(xprime_batch)
+#         xprime_batch_reconstructed = vae1.decode(zprime_batch)
+        
+#         zbar_batch = vae2.encode(xbar_batch)
+#         xbar_batch_reconstructed = vae2.decode(zbar_batch)
+        
+#         # david + sayem
+#         loss1 = L2Loss(zprime_batch, z_batch)
+#         loss2 = VAELoss(xprime_batch_reconstructed, xprime_batch)
+#         loss3 = VAELoss(xbar_batch, xbar_batch_reconstructed)
+        
+#         combined_zbatches, zbatch_labels = combineLatentSpaceWithLabels(zprime_batch, zbar_batch)
+#         classifications = descriminator(combined_zbatches)
+        
+#         loss4 = GANLoss(classifications, zbatch_labels)
+        
+#         total_batch_loss = 0
+#         for weight, loss in zip(loss_weights, [loss1, loss2, loss3, loss4]):
+#             total_batch_loss += weight*loss
+
+#         total_batch_loss.backward()    
+#         VAEOptimizer.step()
+        
+    
+# # fix the weights on the vae for SEDR
+# vae2.predict()
+
+# # step 3, train VGAE on spatial data, this is the VAGE branch from SEDR 
+# # daniel will work on this
+# vgae_params = {}
+# vgae = getVGAE(vgae_params) # build the vgae
+# vgaeBatchLoader = getVGAEBatchLoader(xbar, spot_xy_locations)
+
+# for epoch in (VGAE_TRAIN_EPOCHS):
+#     print('starting epcoh', epoch, 'of VGAE training')
+    
+#     for xbar_batch, x_st_batch in vgaeBatchLoader:
+#         VGAEOptimizer.zero_grad()
+#         x_st_batch = vgae.construct_graph(spot_xy_locations)
+
+#         z_st_batch = vgae.encode(x_st_batch)
+#         x_st_batch_reconstructed = vgae.decode(z_st_batch)
+        
+#         loss1 = VGAELoss(x_st_batch, x_st_batch_reconstructed)
+        
+#         # the gradients on vae2 are fixed, we only perform inference on xbar
+#         zbar_batch = vae2.encode(xbar_batch)
+#         loss2 = CrossEntropy(zbar_batch, z_st_batch) # make the spatial embeddings as similar as possible to the cell-gene embeddings
+
+#         loss = w1*loss1 + w2*loss2
+        
+#         loss.backward() 
+#         VGAEOptimizer.step()
+        
+        
+
+# # prediction step
+# new_cell_gene_matrix = load_sc_dataset('prediction_dataset')
+# embeddings = vae2.encode(new_cell_gene_matrix)
+# spatial_info = vgae.decode(embeddings)
+
+
+
+
+
+
+
+# vae.train(max_epochs=10)
+
+# adata.obsm["X_scVI"] = vae.get_latent_representation()
+# sc.pp.neighbors(adata, use_rep="X_scVI")
+# sc.tl.leiden(adata)
+
+# adata.obsm["X_mde"] = mde(adata.obsm["X_scVI"])
+
+# sc.pl.embedding(
+#     adata,
+#     basis="X_mde",
+#     color=["batch", "leiden"],
+#     frameon=False,
+#     ncols=1,
+# )
+
+# sc.pl.embedding(adata, basis="X_mde", color=["cell_type"], frameon=False, ncols=1)

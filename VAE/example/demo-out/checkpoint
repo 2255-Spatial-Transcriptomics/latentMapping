@@ -1,2 +1,0 @@
-model_checkpoint_path: "/Users/davidw/spatial-transcriptomics/latentMapping/VAE/example/demo-out/lung_human_ASK440_model_5epoch"
-all_model_checkpoint_paths: "/Users/davidw/spatial-transcriptomics/latentMapping/VAE/example/demo-out/lung_human_ASK440_model_5epoch"

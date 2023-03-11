@@ -2,25 +2,34 @@
 
 import torch
 import numpy as np
+from utils import load_sc_dataset
 
 # do the actual data processing in a nother script, the load functions just reads in the post-processed csv files
-full_cell_gene_matrix_sc = load_sc_dataset('training')
 
-spot_gene_matrix_st, spot_xy_locations  = load_st_dataset()
+full_cell_gene_matrix_sc = load_sc_dataset('training') # load as anndata sparse matrix
+# david 
+spot_gene_matrix_st, spot_xy_locations = load_st_dataset('training') # ann-data sparse matrix
+# david
 
 x = sample_highest_expression(full_cell_gene_matrix_sc, 2000) # get 2000 most expressed genes
+# Sayem
 
 # find the common genes between the two datasets
 common_genes = findCommonGenes(full_cell_gene_matrix_sc, spot_gene_matrix_st)
+# sayem
 
 # extract only expression data from sc dataset that share the common genes
 xprime = extractGenes(full_cell_gene_matrix_sc, common_genes)
+# sayem
 
 # extract only expreesion data from st dataset that share the common genes
 xbar = extractGenes(spot_gene_matrix_st, common_genes)
+# sayem
 
 # step one
 baseVAEParams = {}
+# import a scvi model and train end-to-end
+# david + sayem
 baseVAEModel = getVAE(baseVAEParams)
 
 baseVAEModel.train(x)
@@ -87,7 +96,7 @@ for epoch in range(NUM_EPOCHS):
         zbar_batch = vae2.encode(xbar_batch)
         xbar_batch_reconstructed = vae2.decode(zbar_batch)
         
-        
+        # david + sayem
         loss1 = L2Loss(zprime_batch, z_batch)
         loss2 = VAELoss(xprime_batch_reconstructed, xprime_batch)
         loss3 = VAELoss(xbar_batch, xbar_batch_reconstructed)
@@ -109,6 +118,7 @@ for epoch in range(NUM_EPOCHS):
 vae2.predict()
 
 # step 3, train VGAE on spatial data, this is the VAGE branch from SEDR 
+# daniel will work on this
 vgae_params = {}
 vgae = getVGAE(vgae_params) # build the vgae
 vgaeBatchLoader = getVGAEBatchLoader(xbar, spot_xy_locations)
@@ -122,8 +132,6 @@ for epoch in (VGAE_TRAIN_EPOCHS):
 
         z_st_batch = vgae.encode(x_st_batch)
         x_st_batch_reconstructed = vgae.decode(z_st_batch)
-        
-        
         
         loss1 = VGAELoss(x_st_batch, x_st_batch_reconstructed)
         
