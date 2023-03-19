@@ -97,7 +97,8 @@ class baseVAEUnsupervisedTrainingMixin:
         return runner()
     
 
-class VAE1TrainingPlan(TrainingPlan):
+class scVAETrainingPlan(TrainingPlan):
+    """Training plan for vae2 (scvi)"""
     def __init__(self, module, **kwargs):
         super().__init__(module, **kwargs)
     
@@ -113,11 +114,11 @@ class VAE1TrainingPlan(TrainingPlan):
 
         return scvi_loss.loss
     
-class VAE1UnsupervisedTrainingMixin:
-    """General purpose unsupervised train method."""
+class scVAEUnsupervisedTrainingMixin:
+    """Training method for VAE2 (from scvi) """
 
     _data_splitter_cls = DataSplitter
-    _training_plan_cls = VAE1TrainingPlan
+    _training_plan_cls = scVAETrainingPlan
     _train_runner_cls = TrainRunner
 
     def train(

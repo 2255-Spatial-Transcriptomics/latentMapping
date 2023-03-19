@@ -6,3 +6,6 @@ def findCommonGenes(adata_1, adata_2):
     
 def extractGenes(adata, common_genes):
     return adata
+
+def combineLatentSpaceWithLabels(zprime, zbar):
+    return zprime, [1]

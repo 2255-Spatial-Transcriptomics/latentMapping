@@ -21,8 +21,9 @@ from scvi.data.fields import (
 )
 
 from scvi.model.base import BaseModelClass, VAEMixin
-from models.scviModels.trainingPlan import baseVAEUnsupervisedTrainingMixin,VAE1UnsupervisedTrainingMixin
+from models.scviModels.trainingPlans import baseVAEUnsupervisedTrainingMixin,scVAEUnsupervisedTrainingMixin
 from scvi.module import VAE
+from models.scviModels.modules import VAE2
 
 class baseVAE(VAEMixin, baseVAEUnsupervisedTrainingMixin, BaseModelClass):
     """
@@ -75,7 +76,7 @@ class baseVAE(VAEMixin, baseVAEUnsupervisedTrainingMixin, BaseModelClass):
         cls.register_manager(adata_manager)
         
 
-class VAE1(VAEMixin, VAE1UnsupervisedTrainingMixin, BaseModelClass):
+class scVAE(VAEMixin, scVAEUnsupervisedTrainingMixin, BaseModelClass):
     """
     single-cell Variational Inference [Lopez18]_.
     """
@@ -88,7 +89,7 @@ class VAE1(VAEMixin, VAE1UnsupervisedTrainingMixin, BaseModelClass):
     ):
         super().__init__(adata)
 
-        self.module = VAE(
+        self.module = VAE2(
             n_input=self.summary_stats["n_vars"],
             n_batch=self.summary_stats["n_batch"],
             n_latent=n_latent,
