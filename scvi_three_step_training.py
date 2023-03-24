@@ -4,8 +4,14 @@ import numpy as np
 
 from models.scviModels.VAEs import baseVAE, scVAE
 from models.descriminatorModels.classifier import BinaryClassifier
+from models.sedrModels.src.SEDR_trainer import SEDR_Trainer
 from data_loaders.anndata_loader import loadSCDataset, loadSTDataset
 from data_loaders.tools import sampleHighestExpressions, findCommonGenes, extractGenes, combineLatentSpaceWithLabels
+import anndata
+import scanpy as sc
+
+import warnings
+warnings.filterwarnings("ignore")
 
 sc_adata = loadSCDataset()
 st_adata = loadSTDataset() 
@@ -21,6 +27,21 @@ xprime_adata = extractGenes(sc_adata, common_genes)
 # extract only expreesion data from st dataset that share the common genes
 xbar_adata = extractGenes(st_adata, common_genes)
 
+# xsmall_adata = anndata.read_h5ad('data/sc_top2k_genes.h5ad')
+# other_adata = anndata.AnnData(xsmall_adata.X)
+# other_adata.obs_names = xsmall_adata.obs_names
+# other_adata.var_names = xsmall_adata.var_names
+# sc.pp.filter_genes(xsmall_adata, min_counts=3)
+# sc.pp.filter_cells(xsmall_adata, min_counts=3)
+# xsmall_adata.layers["counts"] = xsmall_adata.X.copy()
+# sc.pp.normalize_total(xsmall_adata)
+# sc.pp.log1p(xsmall_adata)
+# xsmall_adata.raw = xsmall_adata
+# baseVAE.setup_anndata(xsmall_adata)
+# vae1 = baseVAE(xsmall_adata, n_latent=2)
+# vae1.train(max_epochs=5)
+
+
 # step 1
 # # import a scvi model and train end-to-end
 baseVAE.setup_anndata(x_adata)
@@ -29,6 +50,8 @@ vae1.train(max_epochs=5)
 
 # create the latent space for sc data
 z = vae1.get_latent_representation(x_adata)
+
+
 # # # step 2
 
 # print(baseVAE._model_summary_string)
@@ -47,18 +70,21 @@ discriminator = BinaryClassifier(n_latent=2)
 
 ## here we should use SEDR, but using scvi for now
 
-vae3 = None
+vae3 = SEDR_Trainer()
 
 NUM_EPOCHS = 10
-MIN_DISCR_ACC = 0.6
+MIN_DISCR_ACC = 1.2
 MAX_DISCR_ITER = 10
 for ep_num in range(NUM_EPOCHS):
     
     # first train the discriminator:
     if vae2.is_trained:
         zprime = vae2.get_latent_representation(xprime_adata)
+        
+        # placeholder for now, TODO: get zbar using sedr vae
         zbar = torch.tensor([1,2,3])
         
+        # TODO: implement this function
         zs, labels = combineLatentSpaceWithLabels(zprime, zbar)
         
         discriminator_acc = 0
@@ -68,12 +94,12 @@ for ep_num in range(NUM_EPOCHS):
             discriminator_acc = discriminator.predict(zs, labels)
             
             if iter > MAX_DISCR_ITER:
-                print('reached max iterations on discriminator')
+                print('\n\nreached max iterations on discriminator')
                 break
             iter += 1
             
-            
-        vae2.module.other_losses = {'similarity_loss': torch.tensor(1-discriminator_acc)}
+          
+        vae2.module.other_losses = {'similarity_loss': torch.tensor(1-discriminator_acc.clone().detach().requires_grad_(True))}
        
     else:
         
