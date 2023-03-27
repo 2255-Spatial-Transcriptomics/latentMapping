@@ -78,6 +78,7 @@ def res_search_fixed_clus(adata, fixed_clus_count, increment=0.02):
         sc.tl.leiden(adata, random_state=0, resolution=res)
         count_unique_leiden = len(pd.DataFrame(adata.obs['leiden']).leiden.unique())
         if count_unique_leiden == fixed_clus_count:
+            print('res', res)
             break
     return res
 
