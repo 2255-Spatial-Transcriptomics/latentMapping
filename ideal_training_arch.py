@@ -144,9 +144,7 @@ for epoch in (VGAE_TRAIN_EPOCHS):
         loss = WEIGHT_ONE*loss1 + WEIGHT_TWO*loss2
         
         loss.backward() 
-        vgaeOptimizer.step()
-        
-        
+        vgaeOptimizer.step()        
 
 # prediction step
 new_cell_gene_matrix = load_sc_dataset('prediction_dataset')

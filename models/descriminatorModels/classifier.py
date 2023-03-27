@@ -1,0 +1,27 @@
+import torch.nn as nn
+import torch
+
+class BinaryClassifier(nn.Module):
+    def __init__(self, n_latent):
+        super().__init__()
+        self.layer1 = nn.Linear(n_latent, 60)
+        self.act1 = nn.ReLU()
+        self.layer2 = nn.Linear(60, 60)
+        self.act2 = nn.ReLU()
+        self.layer3 = nn.Linear(60, 60)
+        self.act3 = nn.ReLU()
+        self.output = nn.Linear(60, 1)
+        self.sigmoid = nn.Sigmoid()
+ 
+    def forward(self, x):
+        x = self.act1(self.layer1(x))
+        x = self.act2(self.layer2(x))
+        x = self.act3(self.layer3(x))
+        x = self.sigmoid(self.output(x))
+        return x
+    
+    def train(self, zs, labels):
+        pass
+
+    def predict(self, zs, labels):
+        return torch.rand(1)
