@@ -3,6 +3,7 @@
 import torch
 import numpy as np
 from utils import load_sc_dataset
+from step_3_functions import *
 
 # do the actual data processing in a nother script, the load functions just reads in the post-processed csv files
 
@@ -122,12 +123,13 @@ vae2.predict()
 vgae_params = {}
 vgae = getVGAE(vgae_params) # build the vgae
 vgaeBatchLoader = getVGAEBatchLoader(xbar, spot_xy_locations)
+vgaeOptimizer = vgae.optimizer
 
 for epoch in (VGAE_TRAIN_EPOCHS):
     print('starting epcoh', epoch, 'of VGAE training')
     
     for xbar_batch, x_st_batch in vgaeBatchLoader:
-        VGAEOptimizer.zero_grad()
+        vgaeOptimizer.zero_grad()
         x_st_batch = vgae.construct_graph(spot_xy_locations)
 
         z_st_batch = vgae.encode(x_st_batch)
@@ -137,12 +139,12 @@ for epoch in (VGAE_TRAIN_EPOCHS):
         
         # the gradients on vae2 are fixed, we only perform inference on xbar
         zbar_batch = vae2.encode(xbar_batch)
-        loss2 = CrossEntropy(zbar_batch, z_st_batch) # make the spatial embeddings as similar as possible to the cell-gene embeddings
+        loss2 = getCrossEntropy(zbar_batch, z_st_batch) # make the spatial embeddings as similar as possible to the cell-gene embeddings
 
-        loss = w1*loss1 + w2*loss2
+        loss = WEIGHT_ONE*loss1 + WEIGHT_TWO*loss2
         
         loss.backward() 
-        VGAEOptimizer.step()
+        vgaeOptimizer.step()
         
         
 
