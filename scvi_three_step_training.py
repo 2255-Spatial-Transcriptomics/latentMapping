@@ -9,6 +9,8 @@ from data_loaders.anndata_loader import loadSCDataset, loadSTDataset
 from data_loaders.tools import sampleHighestExpressions, findCommonGenes, extractGenes, combineLatentSpaceWithLabels
 import anndata
 import scanpy as sc
+from step_3_functions import *
+
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -192,56 +194,40 @@ for ep_num in range(NUM_EPOCHS):
 
 # # step 3, train VGAE on spatial data, this is the VAGE branch from SEDR 
 # # daniel will work on this
+
+
+
 # vgae_params = {}
 # vgae = getVGAE(vgae_params) # build the vgae
-# vgaeBatchLoader = getVGAEBatchLoader(xbar, spot_xy_locations)
+# vgaeBatchLoader = getVGAEBatchLoader(xbar_adata, zbar)
+# vgaeOptimizer = vgae.optimizer
 
 # for epoch in (VGAE_TRAIN_EPOCHS):
 #     print('starting epcoh', epoch, 'of VGAE training')
     
 #     for xbar_batch, x_st_batch in vgaeBatchLoader:
-#         VGAEOptimizer.zero_grad()
-#         x_st_graph = vgae.construct_graph(spot_xy_locations)
+#         vgaeOptimizer.zero_grad()
+#         x_st_batch = vgae.construct_graph(zbar)
 
-#         z_bar_batch = vae2.encode(xbar_batch)
+#         z_st_batch = vgae.encode(x_st_batch)
+#         x_st_batch_reconstructed = vgae.decode(z_st_batch)
         
-#         z_combined_batch = vgae.encode(x_st_graph, z_bar_batch)
-        
-#         x_st_graph_reconstructed = vgae.decode(z_combined_batch)
-#         x_st_batch_reconstructed = vgae.recontruct_xy_locations(x_st_graph_reconstructed)
-        
-#         loss = VGAELoss(x_st_batch, x_st_batch_reconstructed)
+#         loss1 = VGAELoss(x_st_batch, x_st_batch_reconstructed)
         
 #         # the gradients on vae2 are fixed, we only perform inference on xbar
+#         zbar_batch = vae2.encode(xbar_batch)
+#         loss2 = getCrossEntropy(zbar_batch, z_st_batch) # make the spatial embeddings as similar as possible to the cell-gene embeddings
+
+#         loss = WEIGHT_ONE*loss1 + WEIGHT_TWO*loss2
+        
 #         loss.backward() 
-#         VGAEOptimizer.step()
-        
-        
+#         vgaeOptimizer.step()        
 
 # # prediction step
-# new_cell_gene_matrix = load_sc_dataset('prediction_dataset')
+# new_cell_gene_matrix = loadSCDataset('prediction_dataset')
 # embeddings = vae2.encode(new_cell_gene_matrix)
+# spatial_info = vgae.decode(embeddings)
 
-# z = vae2.encode(embeddings)
-
-# graph = x_st_graph # use the same graph constructed from step 3
-# z_combined = vgae.encode(graph, z)
-
-# graph_reconstructed = vgae.decode(z_combined)
-
-# spatial_info = vgae.reconstruct_xy_locations(graph_reconstructed)
-
-
-        
-
-
-
-
-
-
-
-
-# vae.train(max_epochs=10)
 
 # adata.obsm["X_scVI"] = vae.get_latent_representation()
 # sc.pp.neighbors(adata, use_rep="X_scVI")

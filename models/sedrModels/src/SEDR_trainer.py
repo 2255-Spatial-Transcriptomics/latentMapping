@@ -22,6 +22,11 @@ def reconstruction_loss(decoded, x):
     loss_rcn = loss_func(decoded, x)
     return loss_rcn
 
+def euclidean_loss(z1, z2):
+    loss_func = torch.nn.MSELoss()
+    loss_rcn = loss_func(z1, z2)
+    return loss_rcn
+
 
 def gcn_loss(preds, labels, mu, logvar, n_nodes, norm, mask=None):
     if mask is not None:
@@ -74,6 +79,7 @@ class SEDR_Trainer:
             loss_gcn = gcn_loss(preds=self.model.dc(latent_z), labels=self.adj_label, mu=mu,
                                 logvar=logvar, n_nodes=self.params.cell_num, norm=self.norm_value, mask=self.adj_label)
             loss_rec = reconstruction_loss(de_feat, self.node_X)
+            loss_z2bar_z3 = euclidean_loss()
             loss = self.params.feat_w * loss_rec + self.params.gcn_w * loss_gcn
             loss.backward()
             self.optimizer.step()
