@@ -19,6 +19,9 @@ import scanpy as sc
 import warnings
 warnings.filterwarnings("ignore")
 
+torch.manual_seed(2)
+np.random.seed(2)
+
 sc_adata = loadSCDataset()
 st_adata = loadSTDataset() 
 
@@ -55,7 +58,7 @@ vae3 = scVAE(xbar_adata, n_latent=LATENT_DIM)
 discriminator = BinaryClassifierTrainer(n_latent=LATENT_DIM)
 
 NUM_EPOCHS = 10
-MIN_DISCR_ACC = 1.2
+MIN_DISCR_ACC = 70 # percent
 MAX_DISCR_ITER = 10
 for ep_num in range(NUM_EPOCHS):
     
@@ -63,7 +66,6 @@ for ep_num in range(NUM_EPOCHS):
     if vae2.is_trained:
         zprime = vae2.get_latent_representation(xprime_adata)
         zprime_labels = np.zeros(zprime.shape[0])
-
 
         zbar = vae3.get_latent_representation(xbar_adata)
         zbar_labels = np.ones(zbar.shape[0])
@@ -77,15 +79,51 @@ for ep_num in range(NUM_EPOCHS):
         labels = labels[permutation]
         
         # train the discriminator
-        loss, acc = discriminator.train(zs, labels)
+        acc = 0 
+        num_iters = 0
+        while acc < MIN_DISCR_ACC:
+            zs_tensor = torch.Tensor(zs)
+            labels_tensor = torch.Tensor(labels).unsqueeze(1)
+            loss, acc = discriminator.train(zs_tensor, labels_tensor)
+            
+            if num_iters > MAX_DISCR_ITER:
+                print('max iterations reached on discriminator training')
+                break
+            num_iters += 1
+        
+        # compute the discriminator loss with gradients on both vaes
+        zprime_grad = vae2.get_latent_representation_with_grad(xprime_adata)
+        zprime_labels = torch.zeros(zprime_grad.shape[0],1)
+
+        zbar_grad = vae3.get_latent_representation_with_grad(xbar_adata)
+        zbar_labels = torch.ones(zbar_grad.shape[0],1)
+
+        # merge the two latent spaces and shuffle
+        zs_grad = torch.cat((zprime_grad, zbar_grad))
+        labels_grad = torch.cat((zprime_labels, zbar_labels)).type(torch.DoubleTensor)
+        labels_grad.requires_grad = True
+        
+        permutation = torch.randperm(zs_grad.size(0))
+        zs_grad = zs_grad[permutation, :]
+        labels_grad = labels_grad[permutation]
+        
+        pred_grad = discriminator.forward(zs_grad)
+        
+        pred_vals = torch.round(torch.sigmoid(pred_grad))
+
+        # this is the inaccuracy of the model, what percentage of the predictions are wrong
+        inacc_grad = torch.sum(torch.pow(labels_grad - pred_vals, 2))/labels_grad.shape[0]
         
         
-        # vae2.module.other_losses = {'similarity_loss': torch.tensor(1-discriminator_acc.clone().detach().requires_grad_(True))}
-       
+        # TODO: implement the similarity loss between zbar and z
+        vae2.module.other_losses = {'discriminator_loss': inacc_grad, 'similarity_loss': torch.tensor([0.])}
+        vae3.module.other_losses = {'discriminator_loss': inacc_grad, 'similarity_loss': torch.tensor([0.])}
+        
     else:
         
-        vae2.module.other_losses = {'similarity_loss': torch.tensor(0)}
-        vae3.module.other_losses = {'similarity_loss': torch.tensor(0)}
+        vae2.module.other_losses = {'discriminator_loss': torch.tensor([0.]), 'similarity_loss': torch.tensor([0.])}
+        vae3.module.other_losses = {'discriminator_loss': torch.tensor([0.]), 'similarity_loss': torch.tensor([0.])}
+
         
     vae2.train(max_epochs=1)
     vae3.train(max_epochs=1)

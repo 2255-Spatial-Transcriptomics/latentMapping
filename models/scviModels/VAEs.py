@@ -20,12 +20,13 @@ from scvi.data.fields import (
     NumericalObsField,
 )
 
-from scvi.model.base import BaseModelClass, VAEMixin
+from scvi.model.base import BaseModelClass 
+from models.scviModels.scVAEMixin import scVAEMixin
 from models.scviModels.trainingPlans import baseVAEUnsupervisedTrainingMixin,scVAEUnsupervisedTrainingMixin
 from scvi.module import VAE
 from models.scviModels.modules import VAE2
 
-class baseVAE(VAEMixin, baseVAEUnsupervisedTrainingMixin, BaseModelClass):
+class baseVAE(scVAEMixin, baseVAEUnsupervisedTrainingMixin, BaseModelClass):
     """
     single-cell Variational Inference [Lopez18]_.
     """
@@ -76,7 +77,7 @@ class baseVAE(VAEMixin, baseVAEUnsupervisedTrainingMixin, BaseModelClass):
         cls.register_manager(adata_manager)
         
 
-class scVAE(VAEMixin, scVAEUnsupervisedTrainingMixin, BaseModelClass):
+class scVAE(scVAEMixin, scVAEUnsupervisedTrainingMixin, BaseModelClass):
     """
     single-cell Variational Inference [Lopez18]_.
     """
