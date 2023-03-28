@@ -9,7 +9,7 @@ import torch
 import numpy as np
 
 from models.scviModels.VAEs import baseVAE, scVAE
-from models.descriminatorModels.classifier import BinaryClassifier
+from models.descriminatorModels.classifier_trainer import BinaryClassifierTrainer
 from models.sedrModels.src.SEDR_trainer import SEDR_Trainer
 from data_loaders.anndata_loader import loadSCDataset, loadSTDataset
 from data_loaders.tools import sampleHighestExpressions, findCommonGenes, extractGenes, combineLatentSpaceWithLabels
@@ -33,11 +33,11 @@ xprime_adata = extractGenes(sc_adata, common_genes)
 # extract only expreesion data from st dataset that share the common genes
 xbar_adata = extractGenes(st_adata, common_genes)
 
-
+LATENT_DIM = 2
 # step 1
 # # import a scvi model and train end-to-end
 baseVAE.setup_anndata(x_adata)
-vae1 = baseVAE(x_adata, n_latent=5)
+vae1 = baseVAE(x_adata, n_latent=LATENT_DIM)
 vae1.train(max_epochs=5)
 
 # create the latent space for sc data
@@ -47,8 +47,12 @@ z = vae1.get_latent_representation(x_adata)
 # # # step 2
 
 scVAE.setup_anndata(xprime_adata)
-vae2 = scVAE(xprime_adata, n_latent=2)
+vae2 = scVAE(xprime_adata, n_latent=LATENT_DIM)
 
+scVAE.setup_anndata(xbar_adata)
+vae3 = scVAE(xbar_adata, n_latent=LATENT_DIM)
+
+discriminator = BinaryClassifierTrainer(n_latent=LATENT_DIM)
 
 NUM_EPOCHS = 10
 MIN_DISCR_ACC = 1.2
@@ -58,22 +62,33 @@ for ep_num in range(NUM_EPOCHS):
     # first train the discriminator:
     if vae2.is_trained:
         zprime = vae2.get_latent_representation(xprime_adata)
+        zprime_labels = np.zeros(zprime.shape[0])
+
+
+        zbar = vae3.get_latent_representation(xbar_adata)
+        zbar_labels = np.ones(zbar.shape[0])
+
+        # merge the two latent spaces and shuffle
+        zs = np.concatenate((zbar, zprime))
+        labels = np.concatenate((zbar_labels, zprime_labels))
+
+        permutation = np.random.permutation(zs.shape[0])
+        zs = zs[permutation, :]
+        labels = labels[permutation]
         
-        # placeholder for now, TODO: get zbar using sedr vae
-        zbar = torch.tensor([1,2,3])
+        # train the discriminator
+        loss, acc = discriminator.train(zs, labels)
         
         
-            
-          
-        vae2.module.other_losses = {'similarity_loss': torch.tensor(1-discriminator_acc.clone().detach().requires_grad_(True))}
+        # vae2.module.other_losses = {'similarity_loss': torch.tensor(1-discriminator_acc.clone().detach().requires_grad_(True))}
        
     else:
         
         vae2.module.other_losses = {'similarity_loss': torch.tensor(0)}
-       
+        vae3.module.other_losses = {'similarity_loss': torch.tensor(0)}
         
     vae2.train(max_epochs=1)
-    
+    vae3.train(max_epochs=1)
 
 
 
