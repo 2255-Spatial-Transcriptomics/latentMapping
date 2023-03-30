@@ -9,3 +9,6 @@ def extractGenes(adata, common_genes):
 
 def combineLatentSpaceWithLabels(zprime, zbar):
     return zprime, [1]
+
+def extractSpatial(adata, common_genes):
+    return adata

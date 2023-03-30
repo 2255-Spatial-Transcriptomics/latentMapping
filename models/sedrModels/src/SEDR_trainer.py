@@ -23,9 +23,8 @@ def reconstruction_loss(decoded, x):
     return loss_rcn
 
 def euclidean_loss(z1, z2):
-    loss_func = torch.nn.MSELoss()
-    loss_rcn = loss_func(z1, z2)
-    return loss_rcn
+    dist = torch.cdist(z1, z2, p=2)
+    return dist
 
 
 def gcn_loss(preds, labels, mu, logvar, n_nodes, norm, mask=None):
@@ -65,6 +64,12 @@ class SEDR_Trainer:
         self.optimizer = torch.optim.Adam(params=list(self.model.parameters()),
                                           lr=self.params.gcn_lr, weight_decay=self.params.gcn_decay)
 
+        self.z2bar = None
+
+    def setZ2Bar(self, z2bar):
+        if z2bar:
+            self.z2bar = z2bar
+
     def train_without_dec(self):
         self.model.train()
         bar = Bar('GNN model train without DEC: ', max=self.epochs)
@@ -79,8 +84,12 @@ class SEDR_Trainer:
             loss_gcn = gcn_loss(preds=self.model.dc(latent_z), labels=self.adj_label, mu=mu,
                                 logvar=logvar, n_nodes=self.params.cell_num, norm=self.norm_value, mask=self.adj_label)
             loss_rec = reconstruction_loss(de_feat, self.node_X)
-            loss_z2bar_z3 = euclidean_loss()
-            loss = self.params.feat_w * loss_rec + self.params.gcn_w * loss_gcn
+            if self.z2bar:
+                loss_z2bar_z3 = euclidean_loss(self.z2bar, latent_z)
+            else:
+                loss_z2bar_z3 = 0
+            loss = self.params.feat_w * loss_rec + self.params.gcn_w * loss_gcn\
+                + self.params.eucl3_loss_w * loss_z2bar_z3
             loss.backward()
             self.optimizer.step()
 

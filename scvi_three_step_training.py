@@ -1,20 +1,69 @@
 import scvi
 import torch
 import numpy as np
+import scanpy as sc
+import anndata
+import argparse
+import os
+
 
 from models.scviModels.VAEs import baseVAE, scVAE
 from models.descriminatorModels.classifier import BinaryClassifier
 from models.sedrModels.src.SEDR_trainer import SEDR_Trainer
+from models.sedrModels.src.graph_func import graph_construction
+from models.sedrModels.src.utils_func import mk_dir, adata_preprocess, load_visium_sge
 from data_loaders.anndata_loader import loadSCDataset, loadSTDataset
-from data_loaders.tools import sampleHighestExpressions, findCommonGenes, extractGenes, combineLatentSpaceWithLabels
-import anndata
-import scanpy as sc
+from data_loaders.tools import sampleHighestExpressions, findCommonGenes, extractGenes, combineLatentSpaceWithLabels, extractSpatial
+from anndata import AnnData
 from step_3_functions import *
 
 
 import warnings
 warnings.filterwarnings("ignore")
 
+### Parameter Settings
+
+torch.cuda.cudnn_enabled = False
+np.random.seed(0)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+print('===== Using device: ' + device + " =====")
+argsDict = {
+    'k': 20,
+    'knn_distanceType': 'euclidean',
+    'epochs': 200,
+    'cell_feat_dim': 200, 
+    'feat_hidden1': 100,
+    'feat_hidden2': 20,
+    'gcn_hidden1': 32,
+    'gcn_hidden2': 8,
+    'p_drop': 0.2,
+    'using_dec': True,
+    'using_mask': False,
+    'feat_w': 10,
+    'gcn_w': 0.1,
+    'dec_kl_w': 10,
+    'gcn_lr': 0.01,
+    'gcn_decay': 0.01,
+    'dec_cluster_n': 10,
+    'dec_interval': 20,
+    'dec_tol': 0.00,
+    'eval_resolution': 1,
+    'eval_graph_n': 20,
+    'device': device,
+    'n_clusters': 20
+}
+params = argparse.Namespace(**argsDict)
+
+# ################## Data download folder
+data_root = './output/data/test/'
+data_name = 'test'
+save_fold = os.path.join('./output/data/test/', data_name)
+
+
+
+### Load Dataset
 sc_adata = loadSCDataset()
 st_adata = loadSTDataset() 
 
@@ -28,6 +77,9 @@ xprime_adata = extractGenes(sc_adata, common_genes)
 
 # extract only expreesion data from st dataset that share the common genes
 xbar_adata = extractGenes(st_adata, common_genes)
+
+# extract only spatial data from st dataset that share the common genes
+xbar_spatial_adata = extractSpatial(st_adata, common_genes)
 
 # xsmall_adata = anndata.read_h5ad('data/sc_top2k_genes.h5ad')
 # other_adata = anndata.AnnData(xsmall_adata.X)
@@ -72,8 +124,6 @@ discriminator = BinaryClassifier(n_latent=2)
 
 ## here we should use SEDR, but using scvi for now
 
-vae3 = SEDR_Trainer()
-
 NUM_EPOCHS = 10
 MIN_DISCR_ACC = 1.2
 MAX_DISCR_ITER = 10
@@ -109,8 +159,26 @@ for ep_num in range(NUM_EPOCHS):
        
         
     vae2.train(max_epochs=1)
-    
 
+# ################## Load data
+adata = xbar_adata
+adata.var_names_make_unique()
+adata_X = adata_preprocess(adata, min_cells=5, pca_n_comps=params.cell_feat_dim)
+graph_dict = graph_construction(xbar_spatial_adata, adata.shape[0], params)
+params.cell_num = adata.shape[0]
+params.save_path = mk_dir(save_fold)
+print('==== Graph Construction Finished')
+
+vae3 = SEDR_Trainer(adata_X, graph_dict, params)
+vae3.setZ2Bar(zbar)
+if params.using_dec:
+    vae3.train_with_dec()
+else:
+    vae3.train_without_dec()
+sedr_feat, _, _, _ = vae3.process()
+
+np.savez(os.path.join(params.save_path, "SEDR_result.npz"), sedr_feat=sedr_feat, deep_Dim=params.feat_hidden2)
+print("Step 3 Latent Shape: " + str(sedr_feat.shape))
 
 
 # vae2 = getVAE(vae1_params) # VAE such as scphere or scvi
