@@ -44,6 +44,7 @@ argsDict = {
     'feat_w': 10,
     'gcn_w': 0.1,
     'dec_kl_w': 10,
+    'eucl3_loss_w': 0.5,
     'gcn_lr': 0.01,
     'gcn_decay': 0.01,
     'dec_cluster_n': 10,
