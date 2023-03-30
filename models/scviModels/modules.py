@@ -500,7 +500,7 @@ class VAE2(BaseMinifiedModeModuleClass):
 
         loss = torch.mean(reconst_loss + weighted_kl_local)
 
-        loss = torch.sum(loss + self.other_losses['similarity_loss'])
+        # loss = torch.sum(loss + self.other_losses['similarity_loss'] + self.other_losses['discriminator_loss'])
         
         kl_local = dict(
             kl_divergence_l=kl_divergence_l, kl_divergence_z=kl_divergence_z

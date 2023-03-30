@@ -25,10 +25,7 @@ class BinaryClassifierTrainer():
         return acc
 
     def train(self, zs, labels):
-        zs_tensor = torch.Tensor(zs)
-        labels_tensor = torch.Tensor(labels)
-
-        dataset = TensorDataset(zs_tensor, labels_tensor.unsqueeze(1))
+        dataset = TensorDataset(zs, labels)
         dataloader = DataLoader(dataset, batch_size = self.batch_size)
         
         batch_loss = 0
@@ -48,6 +45,5 @@ class BinaryClassifierTrainer():
         total_acc = batch_acc / len(dataloader)
         return total_loss, total_acc
 
-    def predict(self, Z):
-        zs_tensor = torch.Tensor(Z)
-        return torch.round(torch.sigmoid(self.model(zs_tensor)))
+    def forward(self, Z):
+        return self.model(Z)
