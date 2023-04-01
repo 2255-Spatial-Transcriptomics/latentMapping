@@ -500,8 +500,40 @@ class VAE2(BaseMinifiedModeModuleClass):
 
         loss = torch.mean(reconst_loss + weighted_kl_local)
 
-        # loss = torch.sum(loss + self.other_losses['similarity_loss'] + self.other_losses['discriminator_loss'])
+        # compute the inaccuracy loss
+        if self.models['vae2'].is_trained and self.models['vae3'].is_trained:
+            # compute the discriminator loss with gradients on both vaes
+            
+            vae2 = self.models['vae2']
+            vae3 = self.models['vae3']
+            discriminator = self.models['discriminator']
+            xbar_adata = self.datasets['xbar_adata']
+            xprime_adata = self.datasets['xprime_adata']
+    
+            zprime_grad = vae2.get_latent_representation_with_grad(xprime_adata)
+            zprime_labels = torch.zeros(zprime_grad.shape[0],1)
+
+            zbar_grad = vae3.get_latent_representation_with_grad(xbar_adata)
+            zbar_labels = torch.ones(zbar_grad.shape[0],1)
+
+            # merge the two latent spaces and shuffle
+            zs_grad = torch.cat((zprime_grad, zbar_grad))
+            labels_grad = torch.cat((zprime_labels, zbar_labels)).type(torch.float)
+            labels_grad.requires_grad = True
+            
+            permutation = torch.randperm(zs_grad.size(0))
+            zs_grad = zs_grad[permutation, :]
+            labels_grad = labels_grad[permutation]
+            
+            pred_grad = discriminator.forward(zs_grad)
+            
+            pred_vals = torch.round(torch.sigmoid(pred_grad))
+
+            # this is the inaccuracy of the model, what percentage of the predictions are wrong
+            inacc_grad = torch.sum(torch.pow(labels_grad - pred_vals, 2))/labels_grad.shape[0]
         
+            loss = loss + inacc_grad
+            
         kl_local = dict(
             kl_divergence_l=kl_divergence_l, kl_divergence_z=kl_divergence_z
         )

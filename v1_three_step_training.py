@@ -62,8 +62,13 @@ MIN_DISCR_ACC = 70 # percent
 MAX_DISCR_ITER = 10
 for ep_num in range(NUM_EPOCHS):
     
-    # first train the discriminator:
+    vae2.module.models = {'vae2': vae2, 'vae3': vae3, 'discriminator': discriminator}
+    vae3.module.models = {'vae2': vae2, 'vae3': vae3, 'discriminator': discriminator}
+    vae2.module.datasets = {'xbar_adata': xbar_adata, 'xprime_adata': xprime_adata}
+    vae3.module.datasets = {'xbar_adata': xbar_adata, 'xprime_adata': xprime_adata}
+        
     if vae2.is_trained:
+        # first train the discriminator:
         zprime = vae2.get_latent_representation(xprime_adata)
         zprime_labels = np.zeros(zprime.shape[0])
 
@@ -91,6 +96,7 @@ for ep_num in range(NUM_EPOCHS):
                 break
             num_iters += 1
         
+        
         # compute the discriminator loss with gradients on both vaes
         zprime_grad = vae2.get_latent_representation_with_grad(xprime_adata)
         zprime_labels = torch.zeros(zprime_grad.shape[0],1)
@@ -114,16 +120,9 @@ for ep_num in range(NUM_EPOCHS):
         # this is the inaccuracy of the model, what percentage of the predictions are wrong
         inacc_grad = torch.sum(torch.pow(labels_grad - pred_vals, 2))/labels_grad.shape[0]
         
-        
-        # TODO: implement the similarity loss between zbar and z
-        vae2.module.other_losses = {'discriminator_loss': inacc_grad, 'similarity_loss': torch.tensor([0.])}
-        vae3.module.other_losses = {'discriminator_loss': inacc_grad, 'similarity_loss': torch.tensor([0.])}
-        
-    else:
-        
-        vae2.module.other_losses = {'discriminator_loss': torch.tensor([0.]), 'similarity_loss': torch.tensor([0.])}
-        vae3.module.other_losses = {'discriminator_loss': torch.tensor([0.]), 'similarity_loss': torch.tensor([0.])}
 
+    # vae3.module.other_losses = {'discriminator_loss': inacc_grad.clone(), 'similarity_loss': torch.tensor([0.])}
+        
         
     vae2.train(max_epochs=1)
     vae3.train(max_epochs=1)
