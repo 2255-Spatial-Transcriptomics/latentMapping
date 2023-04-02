@@ -25,7 +25,7 @@ np.random.seed(2)
 sc_adata = loadSCDataset()
 st_adata = loadSTDataset() 
 
-x_adata = sampleHighestExpressions(st_adata)
+x_adata = sampleHighestExpressions(sc_adata)
 
 # find the common genes between the two datasets
 common_genes = findCommonGenes(st_adata, sc_adata)

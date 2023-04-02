@@ -9,7 +9,9 @@ from sklearn.cluster import KMeans
 import os
 
 from models.sedrModels.progress.bar import Bar
+from models.sedrModels.src.SEDR_model import SEDR 
 from models.sedrModels.src.SEDR_model_v2 import SEDR_V2
+
 
 
 def target_distribution(batch):
@@ -43,7 +45,7 @@ class SEDR_Trainer:
     '''
     Edits made to this class from the original code
     '''
-    def __init__(self, node_X, graph_dict, params):
+    def __init__(self, node_X, graph_dict, params, version):
         self.params = params
         self.device = params.device
         self.epochs = params.epochs
@@ -56,7 +58,10 @@ class SEDR_Trainer:
         else:
             self.adj_mask = None
 
-        self.model = SEDR_V2(self.params.cell_feat_dim, self.params).to(self.device)
+        if version == 1:
+            self.model = SEDR(self.params.cell_feat_dim, self.params).to(self.device)
+        elif version == 2:
+            self.model = SEDR_V2(self.params.cell_feat_dim, self.params).to(self.device)
         self.optimizer = torch.optim.Adam(params=list(self.model.parameters()),
                                           lr=self.params.gcn_lr, weight_decay=self.params.gcn_decay)
 
@@ -85,6 +90,53 @@ class SEDR_Trainer:
                                         batch_time=batch_time * (self.epochs - epoch) / 60, loss=loss.item())
             bar.next()
         bar.finish()
+        
+    def train_without_dec(self):
+        self.model.train()
+        bar = Bar('GNN model train without DEC: ', max=self.epochs)
+        bar.check_tty = False
+        for epoch in range(self.epochs):
+            start_time = time.time()
+            self.model.train()
+            self.optimizer.zero_grad()
+            latent_z, mu, logvar, de_feat, _, feat_x, _ = self.model(self.node_X, self.adj_norm)
+
+            
+            loss_gcn = gcn_loss(preds=self.model.dc(latent_z), labels=self.adj_label, mu=mu,
+                                logvar=logvar, n_nodes=self.params.cell_num, norm=self.norm_value, mask=self.adj_label)
+            loss_rec = reconstruction_loss(de_feat, self.node_X)
+            loss = self.params.feat_w * loss_rec + self.params.gcn_w * loss_gcn
+            loss.backward()
+            self.optimizer.step()
+
+            end_time = time.time()
+            batch_time = end_time - start_time
+            bar_str = '{} / {} | Left time: {batch_time:.2f} mins| Loss: {loss:.4f}'
+            bar.suffix = bar_str.format(epoch + 1, self.epochs,
+                                        batch_time=batch_time * (self.epochs - epoch) / 60, loss=loss.item())
+            bar.next()
+        bar.finish()
+        
+    def train_one_episode_without_dec(self):
+        self.model.train()
+        
+        start_time = time.time()
+        self.optimizer.zero_grad()
+        latent_z, mu, logvar, de_feat, _, feat_x, _ = self.model(self.node_X, self.adj_norm)
+
+        
+        loss_gcn = gcn_loss(preds=self.model.dc(latent_z), labels=self.adj_label, mu=mu,
+                            logvar=logvar, n_nodes=self.params.cell_num, norm=self.norm_value, mask=self.adj_label)
+        loss_rec = reconstruction_loss(de_feat, self.node_X)
+        loss = self.params.feat_w * loss_rec + self.params.gcn_w * loss_gcn
+        loss.backward()
+        self.optimizer.step()
+
+        end_time = time.time()
+        batch_time = end_time - start_time
+        
+        return batch_time, loss
+        
 
     def save_model(self, save_model_file):
         torch.save({'state_dict': self.model.state_dict()}, save_model_file)
@@ -147,5 +199,10 @@ class SEDR_Trainer:
             bar.suffix = bar_str.format(epoch_id + 1, self.epochs, loss=loss.item())
             bar.next()
         bar.finish()
+        
+    
+    
+
+           
 
 

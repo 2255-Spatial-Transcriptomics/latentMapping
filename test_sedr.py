@@ -14,6 +14,7 @@ from models.sedrModels.src.graph_func import graph_construction
 from models.sedrModels.src.utils_func import mk_dir, adata_preprocess, load_visium_sge
 from models.sedrModels.src.SEDR_trainer import SEDR_Trainer
 from models.sedrModels.src.get_params import getSEDRParams
+from models.sedrModels.progress.bar import Bar
 
 warnings.filterwarnings('ignore')
 torch.cuda.cudnn_enabled = False
@@ -26,11 +27,12 @@ print('===== Using device: ' + device)
 # ################ Parameter setting
 sedr_params = getSEDRParams()
 sedr_params.device = device
-sedr_params.epochs = 1
+
 
 # ################## Data download folder
 data_root = './data/10x_Genomics_Visium/'
 data_name = 'V1_Breast_Cancer_Block_A_Section_1'
+# data_name = 'V1_Breast_Cancer_Block_A_Section_2'
 save_fold = os.path.join('./output/10x_Genomics_Visium/', data_name)
 
 
@@ -43,13 +45,31 @@ sedr_params.cell_num = adata_h5.shape[0]
 sedr_params.save_path = mk_dir(save_fold)
 print('==== Graph Construction Finished')
 
+
+NUM_EPOCHS = 100
+
+# set sedr version = 1 to use original sedr, no modifications
+# version 2: modified sedr where only one latent space is produced for both spatial and sc
+
+sedr_version = 2
+
+# currently not yet modified for training with dec
+sedr_params.using_dec = False
 # ################## Model training
-sedr_net = SEDR_Trainer(adata_X, graph_dict, sedr_params)
+sedr_net = SEDR_Trainer(adata_X, graph_dict, sedr_params, sedr_version)
 if sedr_params.using_dec:
-    for e in range(10):
+    for e in range(NUM_EPOCHS):
         sedr_net.train_with_dec()
 else:
-    sedr_net.train_without_dec()
+    bar = Bar(f'SEDR v{sedr_version} model train without DEC: ', max=NUM_EPOCHS)
+    bar.check_tty = False
+    for e in range(NUM_EPOCHS):
+        time, loss = sedr_net.train_one_episode_without_dec()
+        bar_str = '{} / {} | Left time: {batch_time:.2f} mins| Loss: {loss:.4f}'
+        bar.suffix = bar_str.format(e + 1, NUM_EPOCHS,
+                                    batch_time=time * (NUM_EPOCHS - e) / 60, loss=loss.item())
+        bar.next()
+    bar.finish()
 sedr_feat, _, _, _ = sedr_net.process()
 
 
@@ -82,13 +102,12 @@ def res_search_fixed_clus(adata, fixed_clus_count, increment=0.02):
             break
     return res
 
-n_clusters = 20
+n_clusters = 10
 eval_resolution = res_search_fixed_clus(adata_sedr, n_clusters)
 sc.tl.leiden(adata_sedr, key_added="SEDR_leiden", resolution=eval_resolution)
 
-# will be saved under figures/<name>.png
-
-sc.pl.spatial(adata_sedr, img_key="hires", color=['SEDR_leiden'], save="_sedr_rand_clustering_"+data_name+".png")
+# will be saved under figures/ with sedr version and dataset
+sc.pl.spatial(adata_sedr, img_key="hires", color=['SEDR_leiden'], save=f"_sedr_v{sedr_version}_clustering_"+data_name+".png")
 
 
 
