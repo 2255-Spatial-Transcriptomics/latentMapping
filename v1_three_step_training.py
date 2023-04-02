@@ -22,39 +22,42 @@ warnings.filterwarnings("ignore")
 torch.manual_seed(2)
 np.random.seed(2)
 
-sc_adata = loadSCDataset()
-st_adata = loadSTDataset() 
+# sc_adata = loadSCDataset()
+# st_adata = loadSTDataset() 
 
-x_adata = sampleHighestExpressions(sc_adata)
+x_adata = sc.read_h5ad("/content/drive/MyDrive/Capstone scRNA dataset/scRNA_top2k_genes_new.h5ad")
+
 
 # find the common genes between the two datasets
-common_genes = findCommonGenes(st_adata, sc_adata)
+# common_genes = findCommonGenes(st_adata, sc_adata)
 
 # extract only expression data from sc dataset that share the common genes
-xprime_adata = extractGenes(sc_adata, common_genes)
+xprime_adata = sc.read_h5ad("/content/drive/MyDrive/Capstone scRNA dataset/sc_shared_genes_new.h5ad")
 
 # extract only expreesion data from st dataset that share the common genes
-xbar_adata = extractGenes(st_adata, common_genes)
+xbar_adata = sc.read_h5ad("/content/drive/MyDrive/Capstone scRNA dataset/st_shared_genes_new.h5ad")
 
 LATENT_DIM = 2
 # step 1
 # # import a scvi model and train end-to-end
+
+print("Running step 1...")
 baseVAE.setup_anndata(x_adata)
 vae1 = baseVAE(x_adata, n_latent=LATENT_DIM)
 vae1.train(max_epochs=5)
 
 # create the latent space for sc data
 z = vae1.get_latent_representation(x_adata)
-
+print("step 1 finished")
 
 # # # step 2
-
+print("Running step 2 for sc data")
 scVAE.setup_anndata(xprime_adata)
 vae2 = scVAE(xprime_adata, n_latent=LATENT_DIM)
-
+print("Running step 2 for st data")
 scVAE.setup_anndata(xbar_adata)
 vae3 = scVAE(xbar_adata, n_latent=LATENT_DIM)
-
+print("Running discriminator")
 discriminator = BinaryClassifierTrainer(n_latent=LATENT_DIM)
 
 NUM_EPOCHS = 10
