@@ -25,32 +25,34 @@ np.random.seed(2)
 # sc_adata = loadSCDataset()
 # st_adata = loadSTDataset() 
 
-x_adata = sc.read_h5ad("/content/drive/MyDrive/Capstone scRNA dataset/scRNA_top2k_genes_new.h5ad")
+x_adata = sc.read_h5ad("data/scRNA_top2k_genes_new.h5ad")
 
 
 # find the common genes between the two datasets
 # common_genes = findCommonGenes(st_adata, sc_adata)
 
 # extract only expression data from sc dataset that share the common genes
-xprime_adata = sc.read_h5ad("/content/drive/MyDrive/Capstone scRNA dataset/sc_shared_genes_new.h5ad")
+xprime_adata = sc.read_h5ad("data/sc_shared_genes_new.h5ad")
 
 # extract only expreesion data from st dataset that share the common genes
-xbar_adata = sc.read_h5ad("/content/drive/MyDrive/Capstone scRNA dataset/st_shared_genes_new.h5ad")
+xbar_adata = sc.read_h5ad("data/st_shared_genes_new.h5ad")
 
-LATENT_DIM = 2
+LATENT_DIM = 10
 # step 1
 # # import a scvi model and train end-to-end
 
 print("Running step 1...")
 baseVAE.setup_anndata(x_adata)
 vae1 = baseVAE(x_adata, n_latent=LATENT_DIM)
-vae1.train(max_epochs=5)
+vae1.train(max_epochs=10)
 
 # create the latent space for sc data
 z = vae1.get_latent_representation(x_adata)
-print("step 1 finished")
 
+print("step 1 finished")
+print(f"latent space of dim {LATENT_DIM} has reconstruction error {vae1.get_reconstruction_error()}")
 # # # step 2
+breakpoint()
 print("Running step 2 for sc data")
 scVAE.setup_anndata(xprime_adata)
 vae2 = scVAE(xprime_adata, n_latent=LATENT_DIM)
