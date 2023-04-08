@@ -8,7 +8,7 @@ import scvi
 import torch
 import numpy as np
 
-from models.scviModels.VAEs import baseVAE, scVAE
+from models.scviModels.VAEs import baseVAE, scVAE2, scVAE3
 from models.descriminatorModels.classifier_trainer import BinaryClassifierTrainer
 from models.sedrModels.src.SEDR_trainer import SEDR_Trainer
 from data_loaders.anndata_loader import loadSCDataset, loadSTDataset
@@ -18,7 +18,7 @@ import anndata
 import scanpy as sc
 from scvi.model.utils import mde
 import os 
-
+import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -38,7 +38,7 @@ save_fold = os.path.join('./output/10x_Genomics_Visium/', data_name)
 x_adata = load_visium_sge(sample_id=data_name, save_path=data_root)
 x_adata.var_names_make_unique()
 x_adata.layers['counts'] = x_adata.X
-NUM_EPOCHS = 2
+NUM_EPOCHS = 1
 LATENT_DIM = 20
 
 # step 1
@@ -49,16 +49,40 @@ vae1.train(max_epochs=NUM_EPOCHS)
 
 x_adata.obsm["X_scVI"] = vae1.get_latent_representation()
 sc.pp.neighbors(x_adata, use_rep="X_scVI")
-sc.tl.leiden(x_adata)
+
+
+def res_search_fixed_clus(adata, fixed_clus_count, increment=0.02):
+    '''
+        arg1(adata)[AnnData matrix]
+        arg2(fixed_clus_count)[int]
+        
+        return:
+            resolution[int]
+    '''
+    for res in sorted(list(np.arange(0.2, 2.5, increment)), reverse=True):
+        sc.tl.leiden(adata, random_state=0, resolution=res)
+        count_unique_leiden = len(pd.DataFrame(adata.obs['leiden']).leiden.unique())
+        if count_unique_leiden == fixed_clus_count:
+            print('res', res)
+            break
+    return res
+
+n_clusters = 20
+
+eval_resolution = res_search_fixed_clus(x_adata, n_clusters)
+sc.tl.leiden(x_adata, key_added="leiden", resolution=eval_resolution)
+
+
 x_adata.obsm["X_mde"] = mde(x_adata.obsm["X_scVI"])
 
+x_adata.write_h5ad(filename='step_1_anndata.h5')
 sc.pl.embedding(
     x_adata,
     basis="X_mde",
     color=["leiden"],
     frameon=False,
-    ncols=1,
-    save=f"sc2k_epochs={NUM_EPOCHS}_ldim={LATENT_DIM}.png"
+    ncols=2,
+    save=f"brain_epochs={NUM_EPOCHS}_ldim={LATENT_DIM}.png"
 )
 
 print('done')

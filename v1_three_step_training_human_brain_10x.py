@@ -22,19 +22,42 @@ warnings.filterwarnings("ignore")
 torch.manual_seed(2)
 np.random.seed(2)
 
+from models.sedrModels.src.utils_func import mk_dir, adata_preprocess, load_visium_sge
+import os
 # sc_adata = loadSCDataset()
 # st_adata = loadSTDataset() 
 
 
+# x_adata = sc.read_h5ad("data/scRNA_top2k_genes_new.h5ad")
 
-LATENT_DIM = 10
+# # extract only expression data from sc dataset that share the common genes
+# xprime_adata = sc.read_h5ad("data/sc_shared_genes_new.h5ad")
+
+# # extract only expreesion data from st dataset that share the common genes
+# xbar_adata = sc.read_h5ad("data/st_shared_genes_new.h5ad")
+
+# ################## Load data
+x_adata = load_visium_sge(sample_id='V1_Human_Brain_Section_1', save_path='./data/10x_Genomics_Visium/')
+x_adata.var_names_make_unique()
+x_adata.layers['counts'] = x_adata.X
+
+xprime_adata = load_visium_sge(sample_id='V1_Human_Brain_Section_1', save_path='./data/10x_Genomics_Visium/')
+xprime_adata.var_names_make_unique()
+xprime_adata.layers['counts'] = xprime_adata.X
+
+xbar_adata = load_visium_sge(sample_id='V1_Human_Brain_Section_2', save_path='./data/10x_Genomics_Visium/')
+xbar_adata.var_names_make_unique()
+xbar_adata.layers['counts'] = xbar_adata.X
+
+
+LATENT_DIM = 20
 # step 1
 # # import a scvi model and train end-to-end
 
 print("Running step 1...")
 baseVAE.setup_anndata(x_adata)
 vae1 = baseVAE(x_adata, n_latent=LATENT_DIM)
-vae1.train(max_epochs=10)
+vae1.train(max_epochs=1)
 
 # create the latent space for sc data
 z = vae1.get_latent_representation(x_adata)
@@ -42,14 +65,14 @@ z = vae1.get_latent_representation(x_adata)
 print("step 1 finished")
 print(f"latent space of dim {LATENT_DIM} has reconstruction error {vae1.get_reconstruction_error()}")
 # # # step 2
-breakpoint()
+
 print("Running step 2 for sc data")
-scVAE.setup_anndata(xprime_adata)
-vae2 = scVAE(xprime_adata, n_latent=LATENT_DIM)
-print("Running step 2 for st data")
-scVAE.setup_anndata(xbar_adata)
-vae3 = scVAE(xbar_adata, n_latent=LATENT_DIM)
-print("Running discriminator")
+scVAE2.setup_anndata(xprime_adata)
+vae2 = scVAE2(xprime_adata, n_latent=LATENT_DIM)
+
+scVAE3.setup_anndata(xbar_adata)
+vae3 = scVAE3(xbar_adata, n_latent=LATENT_DIM)
+
 discriminator = BinaryClassifierTrainer(n_latent=LATENT_DIM)
 
 NUM_EPOCHS = 10
@@ -59,7 +82,7 @@ for ep_num in range(NUM_EPOCHS):
     
     vae2.module.models = {'vae2': vae2, 'vae3': vae3, 'discriminator': discriminator}
     vae3.module.models = {'vae2': vae2, 'vae3': vae3, 'discriminator': discriminator}
-    vae2.module.datasets = {'xbar_adata': xbar_adata, 'xprime_adata': xprime_adata}
+    vae2.module.datasets = {'xbar_adata': xbar_adata, 'xprime_adata': xprime_adata, 'z':z}
     vae3.module.datasets = {'xbar_adata': xbar_adata, 'xprime_adata': xprime_adata}
         
     if vae2.is_trained:
@@ -82,43 +105,19 @@ for ep_num in range(NUM_EPOCHS):
         acc = 0 
         num_iters = 0
         while acc < MIN_DISCR_ACC:
+            print(f"\ntraining discriminator: iter {num_iters + 1}")
             zs_tensor = torch.Tensor(zs)
             labels_tensor = torch.Tensor(labels).unsqueeze(1)
             loss, acc = discriminator.train(zs_tensor, labels_tensor)
             
             if num_iters > MAX_DISCR_ITER:
-                print('max iterations reached on discriminator training')
+                print(f'\nmax iterations reached on discriminator training, breaking with acc = {acc}')
                 break
+            if acc > MIN_DISCR_ACC:
+                print(f"\ndiscriminator accuracy = {acc}, breaking ... ")
             num_iters += 1
         
-        
-        # compute the discriminator loss with gradients on both vaes
-        zprime_grad = vae2.get_latent_representation_with_grad(xprime_adata)
-        zprime_labels = torch.zeros(zprime_grad.shape[0],1)
-
-        zbar_grad = vae3.get_latent_representation_with_grad(xbar_adata)
-        zbar_labels = torch.ones(zbar_grad.shape[0],1)
-
-        # merge the two latent spaces and shuffle
-        zs_grad = torch.cat((zprime_grad, zbar_grad))
-        labels_grad = torch.cat((zprime_labels, zbar_labels)).type(torch.DoubleTensor)
-        labels_grad.requires_grad = True
-        
-        permutation = torch.randperm(zs_grad.size(0))
-        zs_grad = zs_grad[permutation, :]
-        labels_grad = labels_grad[permutation]
-        
-        pred_grad = discriminator.forward(zs_grad)
-        
-        pred_vals = torch.round(torch.sigmoid(pred_grad))
-
-        # this is the inaccuracy of the model, what percentage of the predictions are wrong
-        inacc_grad = torch.sum(torch.pow(labels_grad - pred_vals, 2))/labels_grad.shape[0]
-        
-
-    # vae3.module.other_losses = {'discriminator_loss': inacc_grad.clone(), 'similarity_loss': torch.tensor([0.])}
-        
-        
+ 
     vae2.train(max_epochs=1)
     vae3.train(max_epochs=1)
 

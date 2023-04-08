@@ -4,6 +4,7 @@ from typing import Callable, Iterable, Literal, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 from torch import logsumexp
 from torch.distributions import Normal
 from torch.distributions import kl_divergence as kl
@@ -117,7 +118,7 @@ class VAE2(BaseMinifiedModeModuleClass):
         var_activation: Optional[Callable] = None,
     ):
         super().__init__()
-        self.other_losses = {}
+        self.loss_count = 0 
         self.dispersion = dispersion
         self.n_latent = n_latent
         self.log_variational = log_variational
@@ -503,12 +504,14 @@ class VAE2(BaseMinifiedModeModuleClass):
         # compute the inaccuracy loss
         if self.models['vae2'].is_trained and self.models['vae3'].is_trained:
             # compute the discriminator loss with gradients on both vaes
-            
+            print(f'# times running loss, {self.loss_count}')
+            self.loss_count += 1
             vae2 = self.models['vae2']
             vae3 = self.models['vae3']
             discriminator = self.models['discriminator']
             xbar_adata = self.datasets['xbar_adata']
             xprime_adata = self.datasets['xprime_adata']
+            z = self.datasets['z']
     
             zprime_grad = vae2.get_latent_representation_with_grad(xprime_adata)
             zprime_labels = torch.zeros(zprime_grad.shape[0],1)
@@ -530,9 +533,12 @@ class VAE2(BaseMinifiedModeModuleClass):
             pred_vals = torch.round(torch.sigmoid(pred_grad))
 
             # this is the inaccuracy of the model, what percentage of the predictions are wrong
-            inacc_grad = torch.sum(torch.pow(labels_grad - pred_vals, 2))/labels_grad.shape[0]
-        
-            loss = loss + inacc_grad
+            inacc_grad = 1.0 - torch.sum(torch.pow(labels_grad - pred_vals, 2))/labels_grad.shape[0]
+
+            loss_func = nn.MSELoss()
+            similarity_loss = loss_func(torch.tensor(z), vae2.get_latent_representation_with_grad(xprime_adata))
+
+            loss = loss + inacc_grad*z.shape[0] + similarity_loss 
             
         kl_local = dict(
             kl_divergence_l=kl_divergence_l, kl_divergence_z=kl_divergence_z
