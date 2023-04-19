@@ -57,7 +57,7 @@ else:
 
 x_adata.pca_comps = pca_comps
 vae1_params.cell_num = x_adata.shape[0]
-
+vae1_params.latent_dim = 20
 xprime_adata = load_visium_sge(sample_id='V1_Human_Brain_Section_2', save_path='./data/10x_Genomics_Visium/')
 xprime_adata.var_names_make_unique()
 xprime_adata.layers['counts'] = xprime_adata.X
@@ -68,10 +68,10 @@ xbar_adata.var_names_make_unique()
 xbar_adata.layers['counts'] = xbar_adata.X
 
 
-LATENT_DIM = 10
+
 ################## Step 1 ####################
 ## utilize a SEDR vae model and train end-to-end
-NUM_EPOCHS = 5000
+NUM_EPOCHS = 500
 
 
 vae1_params.device = 'cpu'
@@ -79,6 +79,7 @@ vae1_params.device = 'cpu'
 print("Running step 1...")
 vae1_params.using_dec = False
 vae1version = 1
+
 vae1 = SEDRVAE_Trainer(x_adata.pca_comps, vae1_params, vae1version)
 
 if vae1_params.using_dec:
@@ -106,7 +107,7 @@ recon_error = loss_function(
                 vae1.model.decoder(
                     torch.tensor(z, requires_grad=False)), 
                     torch.tensor(x_adata.pca_comps.copy(), requires_grad=False)).item()
-print(f"latent space of dim {LATENT_DIM} has reconstruction error {recon_error}")
+print(f"latent space of dim {z.shape[1]} has reconstruction error {recon_error}")
 
 # # # step 2
 

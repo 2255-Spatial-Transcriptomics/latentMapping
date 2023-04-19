@@ -28,7 +28,7 @@ class SEDRVAE(nn.Module):
     def __init__(self, input_dim, params):
         super(SEDRVAE, self).__init__()
         self.alpha = 1.0
-        self.latent_dim = 10
+        self.latent_dim = params.latent_dim
         
         # feature autoencoder
         self.encoder = nn.Sequential()

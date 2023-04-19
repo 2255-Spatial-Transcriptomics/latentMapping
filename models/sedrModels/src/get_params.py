@@ -41,6 +41,7 @@ def getSEDRVAEParams():
     
     parser.add_argument('--feat_w', type=float, default=10, help='Weight of DNN loss.')
     parser.add_argument('--kl_w', type=float, default=0.03, help='Weight of GCN loss.')
+    parser.add_argument('--latent_dim', type=float, default=10, help='latent dim')
     
     parser.add_argument('--dec_kl_w', type=float, default=10, help='Weight of DEC loss.')
     parser.add_argument('--lr', type=float, default=0.01, help='Initial VAE learning rate.')

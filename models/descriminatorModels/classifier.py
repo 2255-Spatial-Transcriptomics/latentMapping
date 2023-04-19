@@ -16,8 +16,6 @@ class BinaryClassifier(nn.Module):
         self.act3 = nn.ReLU()
         self.output = nn.Linear(60, 1)
 
-
- 
     def forward(self, x):
         x = self.act1(self.layer1(x))
         x = self.act2(self.layer2(x))
