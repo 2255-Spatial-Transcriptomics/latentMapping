@@ -30,21 +30,23 @@ X2d = pca.fit_transform(X)
 # X = np.concatenate((X_0, X_1))
 # y = np.concatenate((np.zeros(num_samples // 2), np.ones(num_samples // 2)))
 
-for i in range(20):
+for i in range(10):
     loss, acc = discriminator.train(X,y)
     print(loss, acc)
 
 ypred = discriminator.predict(X).detach().numpy().flatten()
 
 plt.figure(121)
-plt.scatter(X2d[y==0,0], X2d[y==0,1], label='adipose', s=1)
-plt.scatter(X2d[y==1,0], X2d[y==1,1], label='lung', s=1)
+plt.scatter(X2d[y==0,0], X2d[y==0,1], label='scRNA', s=1)
+plt.scatter(X2d[y==1,0], X2d[y==1,1], label='ibST', s=1)
+plt.title('ground truth')
 plt.xlabel('PCA 1')
 plt.ylabel('PCA 2')
 plt.legend()
 plt.figure(122)
-plt.scatter(X2d[ypred==0,0], X2d[ypred==0,1], label='predicted class 0',s=1)
-plt.scatter(X2d[ypred==1,0], X2d[ypred==1,1], label='predicted class 1',s=1)
+plt.scatter(X2d[ypred==0,0], X2d[ypred==0,1], label='predicted for scRNA',s=1)
+plt.scatter(X2d[ypred==1,0], X2d[ypred==1,1], label='predicted for ibST',s=1)
+plt.title(f'acc = {acc}')
 plt.xlabel('PCA 1')
 plt.ylabel('PCA 2')
 plt.legend()
