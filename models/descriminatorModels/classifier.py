@@ -8,13 +8,13 @@ class BinaryClassifier(nn.Module):
         self.lr = 0.001
         self.weight_decay = 0
         self.batch_size = 10
-        self.layer1 = nn.Linear(n_latent, 60)
+        self.layer1 = nn.Linear(n_latent, 128)
         self.act1 = nn.ReLU()
-        self.layer2 = nn.Linear(60, 60)
+        self.layer2 = nn.Linear(128, 128)
         self.act2 = nn.ReLU()
-        self.layer3 = nn.Linear(60, 60)
+        self.layer3 = nn.Linear(128, 128)
         self.act3 = nn.ReLU()
-        self.output = nn.Linear(60, 1)
+        self.output = nn.Linear(128, 1)
 
     def forward(self, x):
         x = self.act1(self.layer1(x))

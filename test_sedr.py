@@ -31,10 +31,10 @@ sedr_params.device = device
 
 # ################## Data download folder
 data_root = './data/10x_Genomics_Visium/'
-# data_name = 'V1_Breast_Cancer_Block_A_Section_1'
+data_name = 'V1_Breast_Cancer_Block_A_Section_1'
 # data_name = 'V1_Breast_Cancer_Block_A_Section_2'
 # data_name = 'V1_Human_Brain_Section_1'
-data_name = 'V1_Human_Brain_Section_1'
+# data_name = 'V1_Human_Brain_Section_1'
 save_fold = os.path.join('./output/10x_Genomics_Visium/', data_name)
 
 
@@ -53,12 +53,12 @@ print('==== Graph Construction Finished')
 # print('==== Graph Construction Finished')
 
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 500
 
 # set sedr version = 1 to use original sedr, no modifications
 # version 2: modified sedr where only one latent space is produced for both spatial and sc
 
-sedr_version = 1
+sedr_version = 2
 
 # currently not yet modified for training with dec
 sedr_params.using_dec = False
@@ -115,10 +115,10 @@ eval_resolution = res_search_fixed_clus(adata_sedr, n_clusters)
 sc.tl.leiden(adata_sedr, key_added="SEDR_leiden", resolution=eval_resolution)
 
 image = adata_h5.uns['spatial'][data_name]['images']['hires']
-image = (1-image*2)[:, :, (1,2,0)]
+# image = (1-image*2)[:, :, (1,2,0)]
 adata_sedr.uns['spatial'][data_name]['images']['hires'] = image
 # will be saved under figures/ with sedr version and dataset
-sc.pl.spatial(adata_sedr, img_key="hires", color=['SEDR_leiden'], save=f"_sedr_v{sedr_version}_clustering_"+data_name+".png")
+sc.pl.spatial(adata_sedr, img_key="hires", color=['SEDR_leiden'], save=f"_sedr_v{sedr_version}_clustering_500ep_"+data_name+".png")
 
 
 
