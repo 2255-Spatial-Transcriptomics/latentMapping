@@ -8,7 +8,8 @@ import os
 import argparse
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 ### Scphere Imports
 sys.path.insert(0, os.getcwd())

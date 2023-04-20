@@ -1,0 +1,522 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 35 files
+Detected 6 issues that require attention
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+File: VAE_old/build/lib/scphere/util/util.py
+--------------------------------------------------------------------------------
+VAE_old/build/lib/scphere/util/util.py:18:11: ERROR: Using member tf.contrib.distributions.StudentT in deprecated module tf.contrib. tf.contrib.distributions.StudentT cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+--------------------------------------------------------------------------------
+File: VAE_old/build/lib/scphere/model/vae.py
+--------------------------------------------------------------------------------
+VAE_old/build/lib/scphere/model/vae.py:268:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+--------------------------------------------------------------------------------
+File: VAE_old/build/lib/scphere/model/vae_sp.py
+--------------------------------------------------------------------------------
+VAE_old/build/lib/scphere/model/vae_sp.py:340:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+--------------------------------------------------------------------------------
+File: VAE_old/scphere/util/util.py
+--------------------------------------------------------------------------------
+VAE_old/scphere/util/util.py:18:11: ERROR: Using member tf.contrib.distributions.StudentT in deprecated module tf.contrib. tf.contrib.distributions.StudentT cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+--------------------------------------------------------------------------------
+File: VAE_old/scphere/model/vae.py
+--------------------------------------------------------------------------------
+VAE_old/scphere/model/vae.py:268:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+--------------------------------------------------------------------------------
+File: VAE_old/scphere/model/vae_sp.py
+--------------------------------------------------------------------------------
+VAE_old/scphere/model/vae_sp.py:340:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+================================================================================
+Detailed log follows:
+
+================================================================================
+================================================================================
+Input tree: 'VAE_old/'
+================================================================================
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/__init__.py'
+ outputting to 'VAE/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/setup.py'
+ outputting to 'VAE/setup.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/example/script/demo.py'
+ outputting to 'VAE/example/script/demo.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/__init__.py'
+ outputting to 'VAE/build/lib/scphere/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/util/plot.py'
+ outputting to 'VAE/build/lib/scphere/util/plot.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/util/trainer_sp.py'
+ outputting to 'VAE/build/lib/scphere/util/trainer_sp.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/util/util.py'
+ outputting to 'VAE/build/lib/scphere/util/util.py'
+--------------------------------------------------------------------------------
+
+18:11: ERROR: Using member tf.contrib.distributions.StudentT in deprecated module tf.contrib. tf.contrib.distributions.StudentT cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+21:11: INFO: Added keywords to args of function 'tf.reduce_sum'
+21:43: INFO: Renamed keyword argument for tf.reduce_sum from reduction_indices to axis
+26:11: INFO: Added keywords to args of function 'tf.reduce_sum'
+26:43: INFO: Renamed keyword argument for tf.reduce_sum from reduction_indices to axis
+37:11: INFO: Added keywords to args of function 'tf.reduce_sum'
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/util/__init__.py'
+ outputting to 'VAE/build/lib/scphere/util/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/util/trainer.py'
+ outputting to 'VAE/build/lib/scphere/util/trainer.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/util/data.py'
+ outputting to 'VAE/build/lib/scphere/util/data.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/model/__init__.py'
+ outputting to 'VAE/build/lib/scphere/model/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/model/vae.py'
+ outputting to 'VAE/build/lib/scphere/model/vae.py'
+--------------------------------------------------------------------------------
+
+59:28: INFO: Added keywords to args of function 'tf.reduce_sum'
+63:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+63:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+65:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+77:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+77:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+79:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+85:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+92:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+95:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+95:41: INFO: Added keywords to args of function 'tf.reduce_sum'
+100:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+108:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+118:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+130:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+130:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+164:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+167:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+167:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+185:31: INFO: Added keywords to args of function 'tf.reduce_mean'
+211:17: INFO: Added keywords to args of function 'tf.math.reduce_sum'
+227:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+227:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+228:22: INFO: Added keywords to args of function 'tf.random.poisson'
+229:42: INFO: Added keywords to args of function 'tf.shape'
+233:24: INFO: Added keywords to args of function 'tf.reduce_sum'
+234:19: INFO: Added keywords to args of function 'tf.reduce_mean'
+268:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+289:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+289:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+295:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+295:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+297:19: INFO: Added keywords to args of function 'tf.gradients'
+313:24: INFO: Added keywords to args of function 'tf.reduce_max'
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/model/vae_sp.py'
+ outputting to 'VAE/build/lib/scphere/model/vae_sp.py'
+--------------------------------------------------------------------------------
+
+60:28: INFO: Added keywords to args of function 'tf.reduce_sum'
+66:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+66:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+68:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+80:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+80:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+82:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+88:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+95:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+98:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+98:41: INFO: Added keywords to args of function 'tf.reduce_sum'
+103:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+111:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+130:27: INFO: Added keywords to args of function 'tf.reduce_sum'
+133:13: INFO: Added keywords to args of function 'tf.transpose'
+134:23: INFO: Added keywords to args of function 'tf.reduce_sum'
+145:27: INFO: Added keywords to args of function 'tf.transpose'
+146:37: INFO: Added keywords to args of function 'tf.transpose'
+162:25: INFO: Added keywords to args of function 'tf.reduce_min'
+164:25: INFO: Added keywords to args of function 'tf.reduce_mean'
+164:40: INFO: Added keywords to args of function 'tf.reduce_sum'
+176:27: INFO: Added keywords to args of function 'tf.transpose'
+178:28: INFO: Added keywords to args of function 'tf.transpose'
+184:26: INFO: Added keywords to args of function 'tf.reduce_sum'
+184:40: INFO: Added keywords to args of function 'tf.reduce_sum'
+184:54: INFO: Added keywords to args of function 'tf.reduce_sum'
+191:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+203:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+203:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+240:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+243:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+243:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+261:31: INFO: Added keywords to args of function 'tf.reduce_mean'
+287:17: INFO: Added keywords to args of function 'tf.math.reduce_sum'
+298:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+298:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+300:42: INFO: Added keywords to args of function 'tf.shape'
+305:20: INFO: Added keywords to args of function 'tf.reduce_sum'
+306:15: INFO: Added keywords to args of function 'tf.reduce_mean'
+340:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+361:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+361:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+367:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+367:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+369:19: INFO: Added keywords to args of function 'tf.gradients'
+385:24: INFO: Added keywords to args of function 'tf.reduce_max'
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/ops/__init__.py'
+ outputting to 'VAE/build/lib/scphere/ops/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/ops/ive.py'
+ outputting to 'VAE/build/lib/scphere/ops/ive.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/distributions/__init__.py'
+ outputting to 'VAE/build/lib/scphere/distributions/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/distributions/von_mises_fisher.py'
+ outputting to 'VAE/build/lib/scphere/distributions/von_mises_fisher.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/distributions/hyperspherical_uniform.py'
+ outputting to 'VAE/build/lib/scphere/distributions/hyperspherical_uniform.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/build/lib/scphere/distributions/hyperbolic_wrapped_norm.py'
+ outputting to 'VAE/build/lib/scphere/distributions/hyperbolic_wrapped_norm.py'
+--------------------------------------------------------------------------------
+
+76:20: INFO: Added keywords to args of function 'tf.shape'
+155:15: INFO: Added keywords to args of function 'tf.reduce_sum'
+195:24: INFO: Added keywords to args of function 'tf.reduce_sum'
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/__init__.py'
+ outputting to 'VAE/scphere/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/util/plot.py'
+ outputting to 'VAE/scphere/util/plot.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/util/trainer_sp.py'
+ outputting to 'VAE/scphere/util/trainer_sp.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/util/util.py'
+ outputting to 'VAE/scphere/util/util.py'
+--------------------------------------------------------------------------------
+
+18:11: ERROR: Using member tf.contrib.distributions.StudentT in deprecated module tf.contrib. tf.contrib.distributions.StudentT cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+21:11: INFO: Added keywords to args of function 'tf.reduce_sum'
+21:43: INFO: Renamed keyword argument for tf.reduce_sum from reduction_indices to axis
+26:11: INFO: Added keywords to args of function 'tf.reduce_sum'
+26:43: INFO: Renamed keyword argument for tf.reduce_sum from reduction_indices to axis
+37:11: INFO: Added keywords to args of function 'tf.reduce_sum'
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/util/__init__.py'
+ outputting to 'VAE/scphere/util/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/util/trainer.py'
+ outputting to 'VAE/scphere/util/trainer.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/util/data.py'
+ outputting to 'VAE/scphere/util/data.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/model/__init__.py'
+ outputting to 'VAE/scphere/model/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/model/vae.py'
+ outputting to 'VAE/scphere/model/vae.py'
+--------------------------------------------------------------------------------
+
+59:28: INFO: Added keywords to args of function 'tf.reduce_sum'
+63:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+63:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+65:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+77:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+77:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+79:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+85:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+92:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+95:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+95:41: INFO: Added keywords to args of function 'tf.reduce_sum'
+100:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+108:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+118:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+130:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+130:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+164:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+167:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+167:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+185:31: INFO: Added keywords to args of function 'tf.reduce_mean'
+211:17: INFO: Added keywords to args of function 'tf.math.reduce_sum'
+227:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+227:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+228:22: INFO: Added keywords to args of function 'tf.random.poisson'
+229:42: INFO: Added keywords to args of function 'tf.shape'
+233:24: INFO: Added keywords to args of function 'tf.reduce_sum'
+234:19: INFO: Added keywords to args of function 'tf.reduce_mean'
+268:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+289:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+289:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+295:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+295:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+297:19: INFO: Added keywords to args of function 'tf.gradients'
+313:24: INFO: Added keywords to args of function 'tf.reduce_max'
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/model/vae_sp.py'
+ outputting to 'VAE/scphere/model/vae_sp.py'
+--------------------------------------------------------------------------------
+
+60:28: INFO: Added keywords to args of function 'tf.reduce_sum'
+66:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+66:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+68:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+80:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+80:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+82:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+88:38: INFO: Added keywords to args of function 'tf.reduce_mean'
+95:27: INFO: Renamed 'tf.distributions.Normal' to 'tf.compat.v1.distributions.Normal'
+98:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+98:41: INFO: Added keywords to args of function 'tf.reduce_sum'
+103:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+111:26: INFO: Added keywords to args of function 'tf.reduce_mean'
+130:27: INFO: Added keywords to args of function 'tf.reduce_sum'
+133:13: INFO: Added keywords to args of function 'tf.transpose'
+134:23: INFO: Added keywords to args of function 'tf.reduce_sum'
+145:27: INFO: Added keywords to args of function 'tf.transpose'
+146:37: INFO: Added keywords to args of function 'tf.transpose'
+162:25: INFO: Added keywords to args of function 'tf.reduce_min'
+164:25: INFO: Added keywords to args of function 'tf.reduce_mean'
+164:40: INFO: Added keywords to args of function 'tf.reduce_sum'
+176:27: INFO: Added keywords to args of function 'tf.transpose'
+178:28: INFO: Added keywords to args of function 'tf.transpose'
+184:26: INFO: Added keywords to args of function 'tf.reduce_sum'
+184:40: INFO: Added keywords to args of function 'tf.reduce_sum'
+184:54: INFO: Added keywords to args of function 'tf.reduce_sum'
+191:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+203:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+203:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+240:22: INFO: Multiplying scale arg of tf.contrib.layers.l2_regularizer by half to what tf.keras.regularizers.l2 expects.
+
+243:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+243:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+261:31: INFO: Added keywords to args of function 'tf.reduce_mean'
+287:17: INFO: Added keywords to args of function 'tf.math.reduce_sum'
+298:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+298:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+300:42: INFO: Added keywords to args of function 'tf.shape'
+305:20: INFO: Added keywords to args of function 'tf.reduce_sum'
+306:15: INFO: Added keywords to args of function 'tf.reduce_mean'
+340:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+361:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+361:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+367:13: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+367:13: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+369:19: INFO: Added keywords to args of function 'tf.gradients'
+385:24: INFO: Added keywords to args of function 'tf.reduce_max'
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/ops/__init__.py'
+ outputting to 'VAE/scphere/ops/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/ops/ive.py'
+ outputting to 'VAE/scphere/ops/ive.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/distributions/__init__.py'
+ outputting to 'VAE/scphere/distributions/__init__.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/distributions/von_mises_fisher.py'
+ outputting to 'VAE/scphere/distributions/von_mises_fisher.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/distributions/hyperspherical_uniform.py'
+ outputting to 'VAE/scphere/distributions/hyperspherical_uniform.py'
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Processing file 'VAE_old/scphere/distributions/hyperbolic_wrapped_norm.py'
+ outputting to 'VAE/scphere/distributions/hyperbolic_wrapped_norm.py'
+--------------------------------------------------------------------------------
+
+76:20: INFO: Added keywords to args of function 'tf.shape'
+155:15: INFO: Added keywords to args of function 'tf.reduce_sum'
+195:24: INFO: Added keywords to args of function 'tf.reduce_sum'
+--------------------------------------------------------------------------------
+

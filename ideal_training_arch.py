@@ -150,8 +150,3 @@ for epoch in (VGAE_TRAIN_EPOCHS):
 new_cell_gene_matrix = load_sc_dataset('prediction_dataset')
 embeddings = vae2.encode(new_cell_gene_matrix)
 spatial_info = vgae.decode(embeddings)
-
-
-
-
-
