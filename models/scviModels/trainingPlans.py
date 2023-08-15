@@ -239,6 +239,7 @@ class scVAE2TrainingPlan(TrainingPlan):
             lr_min=lr_min,
             **loss_kwargs,
         )
+        self.automatic_optimization = False
 
     def loss_euclidean_map(self, z, z_prime):
         """ euclidean mapping loss between batch and latent space of x"""
@@ -253,21 +254,21 @@ class scVAE2TrainingPlan(TrainingPlan):
             kl_weight = self.kl_weight
             self.loss_kwargs.update({"kl_weight": kl_weight})
         
-        kappa = self.scale_euclidean_loss
+        kappa = 1.0
 
-        z = self.datasets['z']
-
-        batch_tensor = batch[REGISTRY_KEYS.BATCH_KEY]
+        batch_tensor = batch["latent_z_x"]
 
         opts = self.optimizers()
-        opt1, opt2 = opts
+        opt1 = opts
 
         inference_outputs, _, scvi_loss = self.forward(
             batch, loss_kwargs=self.loss_kwargs
         )
-
+        loss = scvi_loss.loss
+        print(loss)
         z_prime = inference_outputs["z"]
-        fool_loss = self.loss_euclidean_map(z, z_prime)
+        fool_loss = self.loss_euclidean_map(batch_tensor, z_prime)
+        print(fool_loss)
         loss += fool_loss * kappa
 
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
@@ -276,11 +277,11 @@ class scVAE2TrainingPlan(TrainingPlan):
         self.manual_backward(loss)
         opt1.step()
 
-        loss = self.loss_euclidean_map(z, z_prime)
-        loss *= kappa
-        opt2.zero_grad()
-        self.manual_backward(loss)
-        opt2.step()
+        # loss = self.loss_euclidean_map(z, z_prime)
+        # loss *= kappa
+        # opt2.zero_grad()
+        # self.manual_backward(loss)
+        # opt2.step()
 
     def on_train_epoch_end(self):
         """Update the learning rate via scheduler steps."""
@@ -326,22 +327,22 @@ class scVAE2TrainingPlan(TrainingPlan):
                 },
             )
 
-        if self.adversarial_classifier is not False:
-            params2 = filter(
-                lambda p: p.requires_grad, self.adversarial_classifier.parameters()
-            )
-            optimizer2 = torch.optim.Adam(
-                params2, lr=1e-3, eps=0.01, weight_decay=self.weight_decay
-            )
-            config2 = {"optimizer": optimizer2}
+        # if self.adversarial_classifier is not False:
+        #     params2 = filter(
+        #         lambda p: p.requires_grad, self.adversarial_classifier.parameters()
+        #     )
+        #     optimizer2 = torch.optim.Adam(
+        #         params2, lr=1e-3, eps=0.01, weight_decay=self.weight_decay
+        #     )
+        #     config2 = {"optimizer": optimizer2}
 
-            # pytorch lightning requires this way to return
-            opts = [config1.pop("optimizer"), config2["optimizer"]]
-            if "lr_scheduler" in config1:
-                scheds = [config1["lr_scheduler"]]
-                return opts, scheds
-            else:
-                return opts
+        #     # pytorch lightning requires this way to return
+        #     opts = [config1.pop("optimizer"), config2["optimizer"]]
+        #     if "lr_scheduler" in config1:
+        #         scheds = [config1["lr_scheduler"]]
+        #         return opts, scheds
+        #     else:
+        #         return opts
 
         return config1
 

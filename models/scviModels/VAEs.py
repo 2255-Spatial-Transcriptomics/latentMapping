@@ -18,11 +18,12 @@ from scvi.data.fields import (
     LayerField,
     NumericalJointObsField,
     NumericalObsField,
+    ObsmField,
 )
 
 from scvi.model.base import BaseModelClass 
 from models.scviModels.scVAEMixin import scVAEMixin
-from models.scviModels.trainingPlans import baseVAEUnsupervisedTrainingMixin,scVAEUnsupervisedTrainingMixin
+from models.scviModels.trainingPlans import baseVAEUnsupervisedTrainingMixin,scVAEUnsupervisedTrainingMixin, scVAE2UnsupervisedTrainingMixin
 from scvi.module import VAE
 from models.scviModels.vae2 import VAE2
 from models.scviModels.vae3 import VAE3
@@ -78,7 +79,7 @@ class baseVAE(scVAEMixin, baseVAEUnsupervisedTrainingMixin, BaseModelClass):
         cls.register_manager(adata_manager)
         
 
-class scVAE2(scVAEMixin, scVAEUnsupervisedTrainingMixin, BaseModelClass):
+class scVAE2(scVAEMixin, scVAE2UnsupervisedTrainingMixin, BaseModelClass):
     """
     single-cell Variational Inference [Lopez18]_.
     """
@@ -117,6 +118,7 @@ class scVAE2(scVAEMixin, scVAEUnsupervisedTrainingMixin, BaseModelClass):
             LayerField(REGISTRY_KEYS.X_KEY, layer, is_count_data=True),
             CategoricalObsField(REGISTRY_KEYS.BATCH_KEY, batch_key),
             # Dummy fields required for VAE class.
+            ObsmField(registry_key="latent_z_x", attr_key="latent_z_x"),
             CategoricalObsField(REGISTRY_KEYS.LABELS_KEY, None),
             NumericalObsField(REGISTRY_KEYS.SIZE_FACTOR_KEY, None, required=False),
             CategoricalJointObsField(REGISTRY_KEYS.CAT_COVS_KEY, None),
@@ -127,6 +129,7 @@ class scVAE2(scVAEMixin, scVAEUnsupervisedTrainingMixin, BaseModelClass):
         )
         adata_manager.register_fields(adata, **kwargs)
         cls.register_manager(adata_manager)
+        adata_manager.view_registry()
         
 class scVAE3(scVAEMixin, scVAEUnsupervisedTrainingMixin, BaseModelClass):
     """

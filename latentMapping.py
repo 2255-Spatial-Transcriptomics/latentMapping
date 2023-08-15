@@ -41,7 +41,8 @@ print("step 1 finished")
 print(f"latent space of dim {LATENT_DIM} has reconstruction error {vae1.get_reconstruction_error()}")
 
 # step 2
-
+xprime_adata.obsm["latent_z_x"] = z
+print(xprime_adata)
 print("Preparing data for step 2.1 for sc data")
 scVAE2.setup_anndata(xprime_adata)
 vae2 = scVAE2(xprime_adata, n_latent=LATENT_DIM)
