@@ -264,7 +264,7 @@ class scVAE2TrainingPlan(TrainingPlan):
         inference_outputs, _, scvi_loss = self.forward(
             batch, loss_kwargs=self.loss_kwargs
         )
-        loss = scvi_loss.loss
+        loss = 0
         print(loss)
         z_prime = inference_outputs["z"]
         fool_loss = self.loss_euclidean_map(batch_tensor, z_prime)
