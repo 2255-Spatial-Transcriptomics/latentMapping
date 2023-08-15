@@ -505,13 +505,10 @@ class VAE3(BaseMinifiedModeModuleClass):
         if self.models['vae2'].is_trained and self.models['vae3'].is_trained:
             # compute the discriminator loss with gradients on both vaes
             
-            vae2 = self.models['vae2']
             vae3 = self.models['vae3']
             discriminator = self.models['discriminator']
             xbar_adata = self.datasets['xbar_adata']
-            xprime_adata = self.datasets['xprime_adata']
-    
-            zprime_grad = vae2.get_latent_representation_with_grad(xprime_adata)
+            zprime_grad = self.datasets['z_prime']
             zprime_labels = torch.zeros(zprime_grad.shape[0],1)
 
             zbar_grad = vae3.get_latent_representation_with_grad(xbar_adata)

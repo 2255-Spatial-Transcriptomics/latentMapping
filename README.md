@@ -15,7 +15,9 @@ This is bad practice but in order for figures to save correctly, please modify t
 ```
 _utils.savefig_or_show('', show=show, save=save)
 ```
+## Running the code for 3Step_Latent_Mapping Branch:
 
+### Please run [latentMapping.py](latentMapping.py)
 ## Description of key functionality of files:
 
 ### [scvi_three_step_training.py](scvi_three_step_training.py)
